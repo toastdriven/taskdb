@@ -33,3 +33,5 @@ export const DESCRIPTION_HEADER =
 /** Markdown heading used for the task comments section. */
 export const COMMENTS_HEADER =
   process.env.TASKDB_COMMENTS_HEADER ?? "## Task Comments";
+
+export const MAX_FILES_PER_DIR = 32768;

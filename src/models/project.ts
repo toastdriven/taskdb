@@ -10,11 +10,17 @@ import type { OutputFn } from "../types.ts";
 import { toSlug } from "../utils/slug.ts";
 import { Task } from "./task.ts";
 
-/** Filter options accepted by `Project.listTasks`. */
+/**
+ * Filter options accepted by {@link Project.listTasks}.
+ */
 export interface ListFilter {
+  /** Only include tasks currently in this status directory. */
   status?: string;
+  /** Only include tasks containing all provided labels. */
   labels?: string[];
+  /** Only include tasks updated strictly before this timestamp. */
   updatedBefore?: Date;
+  /** Only include tasks updated strictly after this timestamp. */
   updatedAfter?: Date;
 }
 
@@ -56,7 +62,13 @@ export class Project {
     }
   }
 
-  /** Returns `true` if the project has already been initialised (i.e. `all/` exists). */
+  /**
+   * Returns whether the project appears initialized.
+   *
+   * A project is considered initialized once the canonical tasks directory exists.
+   *
+   * @returns `true` when `<project>/<ALL_TASKS_DIR>` exists, otherwise `false`.
+   */
   async isInitialized(): Promise<boolean> {
     try {
       await lstat(join(this.path, ALL_TASKS_DIR));
@@ -68,7 +80,13 @@ export class Project {
 
   // ── Status directory helpers ──────────────────────────────────────────────────
 
-  /** Returns all subdirectory names that are status directories (i.e. not `all`). */
+  /**
+   * List current status directories under the project root.
+   *
+   * Any directory that is not in {@link NON_STATUS_DIRS} is treated as a status directory.
+   *
+   * @returns Directory names for known statuses.
+   */
   async getStatusDirs(): Promise<string[]> {
     try {
       const entries = await readdir(this.path, { withFileTypes: true });
@@ -236,7 +254,12 @@ export class Project {
     return this.findTaskById(id);
   }
 
-  /** Locate a task file in `all/` by its integer id and return a hydrated `Task`. */
+  /**
+   * Locate a task file by numeric id and hydrate a {@link Task}.
+   *
+   * @param id Integer task id.
+   * @returns The hydrated task when found, otherwise `null`.
+   */
   async findTaskById(id: number): Promise<Task | null> {
     const groupDir = Task.groupDir(id);
     const prefix = Task.idPad(id);
@@ -415,9 +438,13 @@ export class Project {
   }
 
   /**
-   * Permanently delete a task:
-   * 1. Removes symlinks from all status directories.
-   * 2. Deletes the file from `all/`.
+   * Permanently delete a task.
+   *
+   * Steps:
+   * 1. Remove symlinks from every status directory.
+   * 2. Delete the canonical task file from `<ALL_TASKS_DIR>/`.
+   *
+   * @param task Task instance to delete.
    */
   async deleteTask(task: Task): Promise<void> {
     const statusDirs = await this.getStatusDirs();

@@ -5,19 +5,29 @@ import {
   ALL_TASKS_DIR,
   COMMENTS_HEADER,
   DESCRIPTION_HEADER,
+  MAX_FILES_PER_DIR,
 } from "../constants.ts";
 import type { TaskComment } from "../types.ts";
 import { makeRfc3339 } from "../utils/datetime.ts";
 import { toSlug } from "../utils/slug.ts";
 
+/** Constructor params for {@link Task}. */
 interface TaskParams {
+  /** Integer task id. */
   id: number;
+  /** Filesystem-safe slug (normally derived from title at creation time). */
   slug: string;
+  /** Human-readable task title. */
   title: string;
+  /** Arbitrary label/tag strings. */
   labels: string[];
+  /** RFC 3339 creation timestamp. */
   created: string;
+  /** RFC 3339 last-update timestamp. */
   updated: string;
+  /** Free-form markdown description body. */
   description: string;
+  /** Chronological task comments. */
   comments: TaskComment[];
   /** Absolute path to the project root (e.g. `/…/.tasks`). */
   projectPath: string;
@@ -31,15 +41,21 @@ interface TaskParams {
  * Encapsulates Markdown/YAML serialization, persistence, and common mutations.
  */
 export class Task {
+  /** Integer task id. */
   id: number;
+  /** Immutable-on-create slug used in filename. */
   slug: string;
+  /** Human-readable task title. */
   title: string;
+  /** Arbitrary label/tag strings. */
   labels: string[];
   /** RFC 3339 datetime of creation (immutable after first write). */
   created: string;
   /** RFC 3339 datetime of last update. */
   updated: string;
+  /** Free-form markdown description content. */
   description: string;
+  /** Chronological task comments. */
   comments: TaskComment[];
   /** Absolute path to the project root. */
   projectPath: string;
@@ -84,12 +100,12 @@ export class Task {
 
   /**
    * The group directory name for a given task id.
-   * Tasks are grouped in batches of 32 768 to stay under filesystem limits.
+   * Tasks are grouped in batches of 32,768 to stay under filesystem limits.
    * @example Task.groupDir(1) → "00000"  (ids 1–32768)
    * @example Task.groupDir(32769) → "00001"
    */
   static groupDir(id: number): string {
-    return String(Math.floor((id - 1) / 32768)).padStart(5, "0");
+    return String(Math.floor((id - 1) / MAX_FILES_PER_DIR)).padStart(5, "0");
   }
 
   /**
@@ -110,7 +126,12 @@ export class Task {
 
   /** Absolute path to the real task file inside `all/`. */
   get filePath(): string {
-    return join(this.projectPath, ALL_TASKS_DIR, Task.groupDir(this.id), this.filename);
+    return join(
+      this.projectPath,
+      ALL_TASKS_DIR,
+      Task.groupDir(this.id),
+      this.filename,
+    );
   }
 
   /** Absolute path to this task's group directory inside `all/`. */
@@ -265,7 +286,11 @@ export class Task {
 
   // ── Persistence ─────────────────────────────────────────────────────────────
 
-  /** Ensure the group directory exists and write the task file. */
+  /**
+   * Persist the task to disk.
+   *
+   * Ensures the grouped directory exists, then writes the canonical markdown file.
+   */
   async write(): Promise<void> {
     await mkdir(this.groupDirPath, { recursive: true });
     await Bun.write(this.filePath, this.buildFileContent());
@@ -295,21 +320,33 @@ export class Task {
     await this.write();
   }
 
-  /** Update the title, bump `updated`, and persist. */
+  /**
+   * Update task title and persist.
+   *
+   * @param title New task title.
+   */
   async updateTitle(title: string): Promise<void> {
     this.title = title;
     this.updated = makeRfc3339();
     await this.write();
   }
 
-  /** Update the description, bump `updated`, and persist. */
+  /**
+   * Update task description and persist.
+   *
+   * @param description New description markdown.
+   */
   async updateDescription(description: string): Promise<void> {
     this.description = description;
     this.updated = makeRfc3339();
     await this.write();
   }
 
-  /** Replace labels, bump `updated`, and persist. */
+  /**
+   * Replace task labels and persist.
+   *
+   * @param labels Full replacement set of labels.
+   */
   async updateLabels(labels: string[]): Promise<void> {
     this.labels = labels;
     this.updated = makeRfc3339();

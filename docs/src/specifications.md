@@ -4,23 +4,19 @@ This page defines the behavioral/data contract for taskdb.
 
 ## Filestructure Layout
 
-The tasks for a project are stored by convention under `.tasks/` in the current working directory. This can be overridden with either:
+The tasks for the project are stored by convention under `.tasks/` in the _current working directory_. This is overridable using either the `--project=...` or `TASKDB_PROJECT_PATH` environment variable to specify a different path.
 
-- `--project=<path>`
-- `TASKDB_PROJECT_PATH`
+Within this directory are two mandatory subdirectories: `all` & `complete`.
 
-Within this directory are two mandatory subdirectories:
+The `all` directory holds **all** of the task files within set of zero-padded subdirectories. Each task file gets an auto-incrementing/unique integer, which is zero-padded to retain ordering under normal lexicographical conditions (e.g. `0001` -> `0009`, _then_ `0010`).
 
-- `all/`
-- `complete/`
+> **Note:** This structure of nested subdirectories was chosen due to common filesystem limitations, preventing more than ~32,768 files in a single directory. By computing the integer, splitting up the numbering across multiple subdirectories (`<NNNNN>/<NNNNN>-<slug>.md`, e.g. `00000/00001-initial-setup.md`), this allows for `32768 * 32768`, or over **1 BILLION** tasks.
+>
+> If you need more than 1B tasks for a single project, you may want to investigate a different solution...
 
-The `all/` directory holds **all** task files, grouped into zero-padded subdirectories. Each task gets an auto-incrementing integer ID, zero-padded to preserve lexicographic ordering (`0001` → `0009`, then `0010`).
+The `complete` directory holds **symlinks** to **all** of the completed task files. It mirrors the `all` layout/filepaths.
 
-> This nested layout avoids common filesystem limits around large single-directory file counts (~32,768). By splitting into `<NNNNN>/<NNNNN>-<slug>.md` (for example `00000/00001-initial-setup.md`), taskdb can scale to `32768 * 32768` tasks (over 1 billion).
-
-The `complete/` directory mirrors `all/`, but contains symlinks to completed tasks.
-
-A representative layout:
+The filestructure layout ends up looking like:
 
 ```text
 .tasks/
@@ -47,7 +43,9 @@ A representative layout:
 └── wontfix/
 ```
 
-Any sibling directory besides `all/` acts as a status directory. These directories are arbitrary and user-definable.
+Other subdirectories live alongside `all`/`complete`, and make up task **statuses**. These status subdirectories have an identical internal structure to the `all/` directory. Inside each are symlinks back to the task file's original location in `all/`.
+
+Status directory names are arbitrary. You can rename these directories, remove them, or add others. In this way, `taskdb` adapts to your desired set of statuses without code changes/configuration.
 
 ---
 
@@ -61,16 +59,16 @@ A task's current status is determined by which status directory contains its sym
 
 ## Task File Format
 
-Each task is a Markdown file with YAML frontmatter for structured metadata.
+Each task is stored as a Markdown file, with [YAML frontmatter](https://www.markdownlang.com/advanced/frontmatter.html) fields for structured metadata.
 
 Required frontmatter fields:
 
-- `id`: zero-padded 10-digit string (auto-incrementing integer ID)
-- `slug`: generated from title at creation time; immutable and non-unique
-- `title`: human-readable task title
-- `labels`: YAML string array (arbitrary tags)
-- `created`: RFC 3339 datetime of creation (immutable)
-- `updated`: RFC 3339 datetime of last update (changes on every mutation)
+- `id` - The task id. Integer, but expressed as a zero-padded string, for easy splitting. Auto-incrementing & unique.
+- `slug` - The slug is computed from the `title` **one-time** (at creation). It's immutable, & is **non-unique**.
+- `title` - The human-readable task title. What needs to be done.
+- `labels` - A YAML array of string labels/tags (e.g. `['feat']`, or `['chore', 'easy']`). Can be empty. Labels are arbitrary.
+- `created` - An RFC 3339-formatted datetime string of when the task was created. Computed one-time (at creation) & immutable.
+- `updated` - An RFC 3339-formatted datetime string of when the task was last updated. Computed **every time** there's an update made to the task.
 
 The Markdown body contains:
 
@@ -79,6 +77,8 @@ The Markdown body contains:
 3. `## Task Comments` table with columns `Commented At` and `Comment`
 
 ### Example Task File
+
+For example, the first task of a project (e.g. _"Initial Setup"_) would live at `.tasks/all/00000/00001-initial-setup.md`, & might look like:
 
 ```markdown
 ---
