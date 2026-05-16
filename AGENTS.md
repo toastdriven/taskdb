@@ -83,11 +83,11 @@ tests/
 |---------|-------------|
 | `taskdb init` | Scaffold the `.tasks/` directory structure |
 | `taskdb create "<title>"` | Create a new task |
-| `taskdb update <id>` | Update task fields |
-| `taskdb view <id>` | View a task |
-| `taskdb complete <id>` | Mark task as complete (moves to `complete/` status) |
-| `taskdb delete <id>` | Permanently delete a task |
-| `taskdb comment <id> "<text>"` | Append a comment to a task |
+| `taskdb update <task-identifier>` | Update task fields |
+| `taskdb view <task-identifier>` | View a task |
+| `taskdb complete <task-identifier>` | Mark task as complete (moves to `complete/` status) |
+| `taskdb delete <task-identifier>` | Permanently delete a task |
+| `taskdb comment <task-identifier> "<text>"` | Append a comment to a task |
 | `taskdb list` | List tasks with optional filters |
 | `taskdb search "<text>"` | Full-text search via `rg` |
 
@@ -99,6 +99,34 @@ Commands accepting `<task-identifier>` support:
 - Integer id: `1` or `00001`
 - Full basename: `00001-my-task` (without `.md`)
 - Path fragment: `00000/00001-my-task.md` (with or without status/project prefix)
+
+### Documentation Layout
+
+`mdBook` source files live in `docs/src/`.
+
+Key pages:
+- `chapter_1.md` / `introduction.md`
+- `installation.md`
+- `cli.md`
+- `specifications.md`
+- `guides/`
+- `reference/`
+- `SUMMARY.md`
+
+Build docs with:
+
+```bash
+mdbook build docs
+```
+
+### Agent Workflow Convention
+
+For multi-step work, prefer dogfooding `taskdb` itself:
+
+1. Create/confirm tasks in `ready`.
+2. Move one task to `in-progress` while actively working.
+3. Add comments for notable progress/decisions.
+4. Mark completed work with `taskdb complete <task-identifier>`.
 
 ### CLI Framework
 
