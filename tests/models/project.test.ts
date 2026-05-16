@@ -1,4 +1,4 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test";
+import { test, expect, describe, beforeEach, afterEach, spyOn } from "bun:test";
 import { mkdir, rm, lstat, readlink } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -257,6 +257,79 @@ describe("Project.deleteTask", () => {
       threwLink = true;
     }
     expect(threwLink).toBe(true);
+  });
+});
+
+// ── searchTasks ──────────────────────────────────────────────────────────────
+
+describe("Project._isRipgrepAvailable", () => {
+  test("returns a boolean (real PATH check)", async () => {
+    const result = await project._isRipgrepAvailable();
+    expect(typeof result).toBe("boolean");
+  });
+});
+
+describe("Project.searchTasks — via rg", () => {
+  beforeEach(() => {
+    // Force the rg code-path regardless of what the CI machine has installed.
+    spyOn(project, "_isRipgrepAvailable").mockResolvedValue(true);
+  });
+
+  test("returns matching tasks", async () => {
+    await project.createTask("Alpha Task", "unique-token-rg");
+    await project.createTask("Beta Task", "something else");
+
+    const results = await project.searchTasks("unique-token-rg");
+    expect(results).toHaveLength(1);
+    expect(results[0].title).toBe("Alpha Task");
+  });
+
+  test("returns multiple matching tasks sorted by id", async () => {
+    await project.createTask("First", "shared-token-rg");
+    await project.createTask("Second", "shared-token-rg");
+    await project.createTask("Third", "no match");
+
+    const results = await project.searchTasks("shared-token-rg");
+    expect(results).toHaveLength(2);
+    expect(results.map((t) => t.title)).toEqual(["First", "Second"]);
+  });
+
+  test("returns empty array when nothing matches", async () => {
+    await project.createTask("Unrelated", "some content");
+    const results = await project.searchTasks("zzz-no-match-xyz");
+    expect(results).toHaveLength(0);
+  });
+});
+
+describe("Project.searchTasks — grep fallback", () => {
+  beforeEach(() => {
+    // Simulate an environment where rg is not installed.
+    spyOn(project, "_isRipgrepAvailable").mockResolvedValue(false);
+  });
+
+  test("returns matching tasks via grep", async () => {
+    await project.createTask("Grep Task", "unique-token-grep");
+    await project.createTask("Other Task", "something else");
+
+    const results = await project.searchTasks("unique-token-grep");
+    expect(results).toHaveLength(1);
+    expect(results[0].title).toBe("Grep Task");
+  });
+
+  test("returns multiple matching tasks sorted by id", async () => {
+    await project.createTask("First", "shared-token-grep");
+    await project.createTask("Second", "shared-token-grep");
+    await project.createTask("Third", "no match");
+
+    const results = await project.searchTasks("shared-token-grep");
+    expect(results).toHaveLength(2);
+    expect(results.map((t) => t.title)).toEqual(["First", "Second"]);
+  });
+
+  test("returns empty array when nothing matches", async () => {
+    await project.createTask("Unrelated", "some content");
+    const results = await project.searchTasks("zzz-no-match-xyz");
+    expect(results).toHaveLength(0);
   });
 });
 

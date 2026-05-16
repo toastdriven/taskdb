@@ -34,7 +34,7 @@ export function createProgram(output: OutputFn = console.log): Command {
   program
     .command("help")
     .description("Show help information.")
-    .action(() => program.outputHelp());
+    .action(() => output(program.helpInformation()));
 
   registerAllCommands(program, output);
 
@@ -71,6 +71,9 @@ export async function run(
         `taskdb: unknown command "${unknown}". Run "taskdb help" for usage.`,
       );
       return 1;
+    }
+    if (e.code === "commander.helpDisplayed") {
+      return 0;
     }
     // Re-throw unexpected errors.
     throw e;

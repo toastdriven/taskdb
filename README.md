@@ -35,7 +35,7 @@ Many commands, where relevant/documented, also support a `--format=<output-forma
 | Command          | Purpose        |
 | ---------------- | -------------- |
 | `taskdb init [--format=(quiet|plain|json)]`    | Creates the filestructure to support the tasks |
-| `taskdb create "<title>" [--description="..."] [--status=<status>] [--format=(quiet|plain|json)]` | Creates a new task |
+| `taskdb create "<title>" [--description="..."] [--status=<status>] [--labels="<JSON-string-of-array-of-labels>"] [--format=(quiet|plain|json)]` | Creates a new task |
 | `taskdb update <task-identifier> [--title="..."] [--description="..."] [--status=<status>] [--labels="<JSON-string-of-array-of-labels>"] [--format=(quiet|plain|json)]` | Updates an existing task |
 | `taskdb view <task-identifier> [--format=(plain|raw|json)]` | Views an existing task |
 | `taskdb complete <task-identifier> [--format=(quiet|plain|json)]` | Marks the task as completed |

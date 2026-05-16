@@ -308,12 +308,31 @@ export class Project {
   }
 
   /**
-   * Full-text search across all task files using `rg`.
-   * Returns tasks whose file content matches `query`, sorted by id ascending.
+   * Returns `true` when `rg` (ripgrep) is found on `$PATH`.
+   *
+   * Extracted as an overridable instance method so tests can spy on it
+   * and exercise both the rg and grep code-paths without needing to
+   * actually install/uninstall ripgrep.
+   */
+  async _isRipgrepAvailable(): Promise<boolean> {
+    const result = await Bun.$`which rg`.quiet().nothrow();
+    return result.exitCode === 0;
+  }
+
+  /**
+   * Full-text search across all task files.
+   *
+   * Uses `rg -l` when ripgrep is available on PATH; falls back to
+   * `grep -rl` otherwise.  Returns tasks whose file content matches
+   * `query`, sorted by id ascending.
    */
   async searchTasks(query: string): Promise<Task[]> {
     const allDir = join(this.path, "all");
-    const result = await Bun.$`rg -l ${query} ${allDir}`.quiet().nothrow();
+
+    const useRg = await this._isRipgrepAvailable();
+    const result = useRg
+      ? await Bun.$`rg -l ${query} ${allDir}`.quiet().nothrow()
+      : await Bun.$`grep -rl ${query} ${allDir}`.quiet().nothrow();
 
     const files = result.stdout
       .toString()
@@ -353,6 +372,7 @@ export class Project {
     title: string,
     description: string = "",
     status: string = "ready",
+    labels: string[] = [],
     warn?: OutputFn,
   ): Promise<Task> {
     const nextId = (await this.maxTaskId()) + 1;
@@ -362,7 +382,7 @@ export class Project {
       id: nextId,
       slug,
       title,
-      labels: [],
+      labels,
       created: "",
       updated: "",
       description,
