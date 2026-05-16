@@ -18,6 +18,9 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Setup just
+        uses: taiki-e/install-action@just
+
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v2
         with:
