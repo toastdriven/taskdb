@@ -217,8 +217,9 @@ export class Project {
       // Case 2 & 3: extract leading digits from the basename
       const basename = normalized.split("/").pop()?.replace(/\.md$/, "") ?? "";
       const match = basename.match(/^(\d+)/);
-      if (match) {
-        id = parseInt(match[1], 10);
+      const idText = match?.[1];
+      if (idText) {
+        id = parseInt(idText, 10);
       }
     }
 
