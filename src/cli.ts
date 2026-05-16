@@ -89,7 +89,10 @@ export async function run(
       );
       return 1;
     }
-    if (e.code === "commander.helpDisplayed" || e.code === "commander.version") {
+    if (
+      e.code === "commander.helpDisplayed" ||
+      e.code === "commander.version"
+    ) {
       return 0;
     }
     // Re-throw unexpected errors.

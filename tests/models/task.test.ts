@@ -9,7 +9,10 @@ import { Task } from "../../src/models/task.ts";
 let projectPath: string;
 
 beforeEach(async () => {
-  projectPath = join(tmpdir(), `taskdb-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  projectPath = join(
+    tmpdir(),
+    `taskdb-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
   await mkdir(join(projectPath, "all", "00000"), { recursive: true });
 });
 

@@ -24,11 +24,15 @@ afterEach(async () => {
 describe("commands: init/create/update/view", () => {
   test("init scaffolds and is idempotent", async () => {
     const out1 = capture();
-    await initCommand(fakeProgram(projectPath), out1.output, { format: "plain" });
+    await initCommand(fakeProgram(projectPath), out1.output, {
+      format: "plain",
+    });
     expect(out1.lines.join("\n")).toContain("Initialised project");
 
     const out2 = capture();
-    await initCommand(fakeProgram(projectPath), out2.output, { format: "plain" });
+    await initCommand(fakeProgram(projectPath), out2.output, {
+      format: "plain",
+    });
     expect(out2.lines.join("\n")).toContain("already");
 
     const project = new Project({ path: projectPath });
@@ -109,7 +113,9 @@ describe("commands: init/create/update/view", () => {
     });
 
     const out = capture();
-    await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "plain" });
+    await viewCommand(fakeProgram(projectPath), out.output, "1", {
+      format: "plain",
+    });
     const text = out.lines.join("\n");
     expect(text).toContain("Id: #1");
     expect(text).toContain("Title: Rawy");
@@ -126,7 +132,9 @@ describe("commands: init/create/update/view", () => {
     });
 
     const out = capture();
-    await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "raw" });
+    await viewCommand(fakeProgram(projectPath), out.output, "1", {
+      format: "raw",
+    });
     const text = out.lines.join("\n");
     expect(text).toContain("---");
     expect(text).toContain("Rawy");

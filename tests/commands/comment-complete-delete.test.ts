@@ -31,17 +31,25 @@ afterEach(async () => {
 describe("commands: comment/complete/delete", () => {
   test("comment appends comment", async () => {
     const plainOut = capture();
-    await commentCommand(fakeProgram(projectPath), plainOut.output, "1", "note", {
-      format: "plain",
-    });
+    await commentCommand(
+      fakeProgram(projectPath),
+      plainOut.output,
+      "1",
+      "note",
+      {
+        format: "plain",
+      },
+    );
     expect(plainOut.lines[0]).toBe("#1: T - (Ready)");
 
     const out = capture();
-    await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "json" });
+    await viewCommand(fakeProgram(projectPath), out.output, "1", {
+      format: "json",
+    });
     const task = JSON.parse(out.lines.join("\n"));
-    expect(task.comments.some((c: { comment: string }) => c.comment === "note")).toBe(
-      true,
-    );
+    expect(
+      task.comments.some((c: { comment: string }) => c.comment === "note"),
+    ).toBe(true);
   });
 
   test("complete moves status and adds audit comment", async () => {
@@ -52,19 +60,27 @@ describe("commands: comment/complete/delete", () => {
     expect(plainOut.lines[0]).toBe("#1: T - (Complete)");
 
     const out = capture();
-    await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "json" });
+    await viewCommand(fakeProgram(projectPath), out.output, "1", {
+      format: "json",
+    });
     const task = JSON.parse(out.lines.join("\n"));
     expect(task.status).toBe("complete");
     expect(
-      task.comments.some((c: { comment: string }) => c.comment.includes("complete")),
+      task.comments.some((c: { comment: string }) =>
+        c.comment.includes("complete"),
+      ),
     ).toBe(true);
   });
 
   test("delete removes task", async () => {
-    await deleteCommand(fakeProgram(projectPath), () => {}, "1", { format: "quiet" });
+    await deleteCommand(fakeProgram(projectPath), () => {}, "1", {
+      format: "quiet",
+    });
 
     const out = capture();
-    await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "plain" });
+    await viewCommand(fakeProgram(projectPath), out.output, "1", {
+      format: "plain",
+    });
     expect(out.lines.join("\n")).toContain("not found");
   });
 });

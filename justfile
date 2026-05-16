@@ -11,10 +11,10 @@ lint:
     bunx tsc --noEmit -p tsconfig.lint.json
 
 format:
-    bunx prettier . --write
+    bunx prettier "**/*.ts" --write
 
 format-check:
-    bunx prettier . --check
+    bunx prettier "**/*.ts" --check
 
 @test:
     bun test

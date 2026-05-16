@@ -14,7 +14,7 @@ let project: Project;
 beforeEach(async () => {
   projectPath = join(
     tmpdir(),
-    `taskdb-proj-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    `taskdb-proj-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   project = new Project({ path: projectPath });
   await project.scaffold();
@@ -46,7 +46,9 @@ describe("Project.isInitialized", () => {
   });
 
   test("returns false for a fresh path", async () => {
-    const fresh = new Project({ path: join(tmpdir(), "taskdb-never-exists-xyz") });
+    const fresh = new Project({
+      path: join(tmpdir(), "taskdb-never-exists-xyz"),
+    });
     expect(await fresh.isInitialized()).toBe(false);
   });
 });
@@ -99,7 +101,7 @@ describe("Project.createTask", () => {
       projectPath,
       "ready",
       Task.groupDir(task.id),
-      task.filename
+      task.filename,
     );
     const stat = await lstat(symlinkPath);
     expect(stat.isSymbolicLink()).toBe(true);
@@ -111,7 +113,7 @@ describe("Project.createTask", () => {
       projectPath,
       "in-progress",
       Task.groupDir(task.id),
-      task.filename
+      task.filename,
     );
     const stat = await lstat(symlinkPath);
     expect(stat.isSymbolicLink()).toBe(true);
@@ -189,13 +191,13 @@ describe("Project.transitionStatus", () => {
       projectPath,
       "ready",
       Task.groupDir(task.id),
-      task.filename
+      task.filename,
     );
     const newSymlink = join(
       projectPath,
       "in-progress",
       Task.groupDir(task.id),
-      task.filename
+      task.filename,
     );
 
     // Old symlink gone
@@ -222,7 +224,7 @@ describe("Project.transitionStatus", () => {
     const task = await project.createTask("T", "", "ready");
     const warnings: string[] = [];
     await project.transitionStatus(task, "custom-status", (msg) =>
-      warnings.push(msg)
+      warnings.push(msg),
     );
     expect(warnings.some((w) => w.includes("custom-status"))).toBe(true);
   });
@@ -238,7 +240,7 @@ describe("Project.deleteTask", () => {
       projectPath,
       "ready",
       Task.groupDir(task.id),
-      task.filename
+      task.filename,
     );
 
     await project.deleteTask(task);
@@ -348,7 +350,11 @@ describe("Project.listTasks", () => {
 
   test("filters by status", async () => {
     await project.createTask("Ready Task", "", "ready");
-    const inProgress = await project.createTask("In Progress Task", "", "in-progress");
+    const inProgress = await project.createTask(
+      "In Progress Task",
+      "",
+      "in-progress",
+    );
     const tasks = await project.listTasks({ status: "in-progress" });
     expect(tasks).toHaveLength(1);
     expect(tasks[0].id).toBe(inProgress.id);

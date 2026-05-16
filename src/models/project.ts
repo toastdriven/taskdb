@@ -304,7 +304,12 @@ export class Project {
         if (isNaN(id) || id <= 0) continue;
 
         // Always read from `all/` (the canonical source), even when filtering by status
-        const realPath = join(this.path, ALL_TASKS_DIR, Task.groupDir(id), filename);
+        const realPath = join(
+          this.path,
+          ALL_TASKS_DIR,
+          Task.groupDir(id),
+          filename,
+        );
 
         let task: Task;
         try {

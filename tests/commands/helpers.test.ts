@@ -42,10 +42,9 @@ describe("commands/helpers", () => {
 
   test("parseLabelsOption parses valid JSON array", () => {
     const lines: string[] = [];
-    expect(parseLabelsOption('["bug","easy"]', (line) => lines.push(line))).toEqual([
-      "bug",
-      "easy",
-    ]);
+    expect(
+      parseLabelsOption('["bug","easy"]', (line) => lines.push(line)),
+    ).toEqual(["bug", "easy"]);
     expect(lines).toHaveLength(0);
   });
 
@@ -88,8 +87,9 @@ describe("commands/helpers", () => {
 
   test("formatTaskList renders terse lines", () => {
     const lines: string[] = [];
-    formatTaskList([makeTask(), makeTask({ id: 2, title: "Second", slug: "second" })], (line) =>
-      lines.push(line),
+    formatTaskList(
+      [makeTask(), makeTask({ id: 2, title: "Second", slug: "second" })],
+      (line) => lines.push(line),
     );
     expect(lines[0]).toBe("#1: My Task - (In-progress) - [feat, p1]");
     expect(lines[1]).toBe("#2: Second - (In-progress) - [feat, p1]");

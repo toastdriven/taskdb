@@ -10,7 +10,7 @@ describe("makeRfc3339", () => {
     const result = makeRfc3339();
     // e.g. "2026-05-14T18:26:13.246-05:00" or "2026-05-14T18:26:13.246+00:00"
     expect(result).toMatch(
-      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}$/
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}$/,
     );
   });
 
@@ -19,7 +19,7 @@ describe("makeRfc3339", () => {
     const date = new Date("2026-05-14T23:26:13.246Z");
     const result = makeRfc3339(date);
     expect(result).toMatch(
-      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.246[+-]\d{2}:\d{2}$/
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.246[+-]\d{2}:\d{2}$/,
     );
     // Milliseconds should always be 246
     expect(result).toContain(".246");

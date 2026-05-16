@@ -13,7 +13,11 @@ import { getProjectPath } from "./helpers.ts";
  * @param opts Command options.
  * @returns Promise that resolves when initialization flow completes.
  */
-export async function initCommand(program: Command, output: OutputFn, opts: { format: string }): Promise<void> {
+export async function initCommand(
+  program: Command,
+  output: OutputFn,
+  opts: { format: string },
+): Promise<void> {
   const projectPath = getProjectPath(program.opts());
   const project = new Project({ path: projectPath });
 
