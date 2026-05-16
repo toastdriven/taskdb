@@ -21,6 +21,9 @@ jobs:
       - name: Setup just
         uses: taiki-e/install-action@just
 
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v2
         with:
