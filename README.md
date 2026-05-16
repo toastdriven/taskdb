@@ -8,7 +8,6 @@ Ideal for:
 - LLM integration
 - small projects
 
----
 
 ## Why `taskdb`?
 
@@ -17,7 +16,6 @@ Ideal for:
 - **LLM-native:** Agents can create, update, comment on, and complete tasks using a dead-simple CLI. Great for planning and tracking work mid-session.
 - **Truly zero-config:** Run `taskdb init` once and you're done. No config file needed, though there are plenty of override capabilities built-in w/ environment variables.
 
----
 
 ## Quickstart
 
@@ -50,7 +48,6 @@ $ taskdb complete 1
 \#1: Write the README - (Complete)
 ```
 
----
 
 ### Install
 
@@ -68,7 +65,6 @@ bun add -g taskdb
 
 See the [Installation](./docs/src/installation.md) documentation for full details.
 
----
 
 ## Usage
 
@@ -77,7 +73,9 @@ All commands support the following shared flags/options:
 - `--project=</path/to/project>`: For overriding where the project root is. This defaults to `.tasks` (also overridable via `TASKDB_PROJECT_PATH` environment variable).
 - `--help`: An explanation of what the subcommand does, what flags/options it accepts, etc.
 
-Many commands accept a `<task-identifier>`. This can be:
+Many commands, where relevant/documented, also support a `--format=<output-format>` flag. This defaults to `plain` (plain-text, typical CLI behavior).
+
+And finally, many commands accept a `<task-identifier>`. This can be:
 
 - The integer `id` of the task
   - with or without zero-padding
@@ -86,28 +84,21 @@ Many commands accept a `<task-identifier>`. This can be:
   - with or without the status subdirectory
   - with or without the project root
 
-Many commands, where relevant/documented, also support a `--format=<output-format>` flag. This defaults to `plain` (plain-text, typical CLI behavior). Valid options include:
+| Command                                                                                                                                            | Purpose                                             |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `taskdb --help`                                                                                                                                    | Shows help for all subcommands & usage instructions |
+| `taskdb init`                                                                                                                                      | Creates the filestructure to support the tasks      |
+| `taskdb create "<title>" [--description="..."] [--status="..."]`                                                                                   | Creates a new task                                  |
+| `taskdb update <task-identifier> [--title="..."] [--description="..."] [--status="..."]`                                                           | Updates an existing task                            |
+| `taskdb view <task-identifier>`                                                                                                                    | Views an existing task                              |
+| `taskdb complete <task-identifier>`                                                                                                                | Marks the task as completed                         |
+| `taskdb delete <task-identifier>`                                                                                                                  | Deletes a task permanently                          |
+| `taskdb comment <task-identifier> "<comment>"`                                                                                                     | Adds a comment to an existing task                  |
+| `taskdb list [--status="status"] [--labels="JSON-string-of-array-of-labels"] [--updated-before="<date-string>"] [--updated-after="<date-string>"]` | Lists all tasks that match the criteria             |
+| `taskdb search "<text>"`                                                                                                                           | Lists all tasks for the provided text               |
 
-- `quiet` - No **non-error** output
-- `plain` - Plain text output
-- `json` - The output, structured as JSON
+See the [CLI](./docs/src/cli.md) documentation for full details & available options.
 
-### Available Commands
-
-| Command                                                                                                                                                                      | Purpose                                             |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `taskdb --help`                                                                                                                                                              | Shows help for all subcommands & usage instructions |
-| `taskdb init [--format=(quiet|plain|json)]`                                                                                                                                  | Creates the filestructure to support the tasks      |
-| `taskdb create "<title>" [--description="..."] [--status=<status>] [--labels="<JSON-string-of-array-of-labels>"] [--format=(quiet|plain|json)]`                              | Creates a new task                                  |
-| `taskdb update <task-identifier> [--title="..."] [--description="..."] [--status=<status>] [--labels="<JSON-string-of-array-of-labels>"] [--format=(quiet|plain|json)]`      | Updates an existing task                            |
-| `taskdb view <task-identifier> [--format=(plain|raw|json)]`                                                                                                                  | Views an existing task                              |
-| `taskdb complete <task-identifier> [--format=(quiet|plain|json)]`                                                                                                            | Marks the task as completed                         |
-| `taskdb delete <task-identifier> [--format=(quiet|plain|json)]`                                                                                                              | Deletes a task permanently                          |
-| `taskdb comment <task-identifier> "<comment>" [--format=(quiet|plain|json)]`                                                                                                 | Adds a comment to an existing task                  |
-| `taskdb list [--status=<status>] [--labels="<JSON-string-of-array-of-labels>"] [--updated-before="<date-string>"] [--updated-after="<date-string>"] [--format=(plain|json)]` | Lists all tasks that match the criteria             |
-| `taskdb search "<text>" [--format=(plain|json)]`                                                                                                                             | Lists all tasks for the provided text               |
-
----
 
 ## Development & Running Tests
 
@@ -133,7 +124,6 @@ $ just test
 $ just build-docs
 ```
 
----
 
 ## Dependencies
 
@@ -144,13 +134,11 @@ $ just build-docs
 | [commander](https://tj.github.io/commander.js/)             | CLI argument parsing & subcommands     |
 | [gray-matter](https://github.com/jonschlinkert/gray-matter) | YAML frontmatter handling for Markdown |
 
----
 
 ## Author
 
 Daniel Lindsley
 
----
 
 ## License
 

@@ -55,26 +55,39 @@ Prose description here.
 ### Source Layout
 
 ```
-taskdb.ts           # entry point (shebang)
+taskdb.ts           # executable CLI entry point (shebang)
+index.ts            # package/module entrypoint
 src/
-  cli.ts            # Commander program factory / run(args) function
-  types.ts          # OutputFn, TaskComment, OutputFormat
+  cli.ts            # Commander program factory / run(args)
+  constants.ts      # shared constants + env overrides
+  types.ts          # OutputFn, TaskComment, OutputFormat, etc.
   commands/
-    index.ts        # registerAllCommands() — wires all 9 Commander subcommands
+    index.ts        # registerAllCommands() — wires all Commander subcommands
+    *.ts            # per-command handlers (init/create/update/view/…)
+    helpers.ts      # shared output/lookup/parse helpers
   models/
     project.ts      # Project class — filesystem ops, symlink mgmt, task CRUD
     task.ts         # Task class — read/write Markdown+YAML, comments
   utils/
-    datetime.ts     # makeRfc3339(date?) — RFC 3339 timestamp helper
-    slug.ts         # toSlug() — name → filesystem-safe slug
+    datetime.ts     # makeRfc3339(date?)
+    env.ts          # parseCsvEnv(...)
+    slug.ts         # toSlug(...)
+    strings.ts      # capitalizeFirst(...)
 tests/
-  utils/
-    datetime.test.ts
-    slug.test.ts
+  cli.test.ts                 # CLI smoke coverage
+  commands/                   # command-handler level tests
+    helpers.test.ts
+    init-create-update-view.test.ts
+    comment-complete-delete.test.ts
+    list-search.test.ts
   models/
     task.test.ts
     project.test.ts
-  cli.test.ts
+  utils/
+    datetime.test.ts
+    env.test.ts
+    slug.test.ts
+    strings.test.ts
 ```
 
 ### Supported Commands
@@ -93,6 +106,17 @@ tests/
 
 All commands accept `--project=<path>` (global) and most accept `--format=(quiet|plain|json)`.
 
+### Output Format Behavior
+
+Current CLI output conventions:
+
+- `plain`:
+  - most mutating/list/search commands use terse one-line output:
+    - `#<id>: <title> - (<Status>) - [label1, label2]`
+  - `view --format plain` uses full multi-line task detail output
+- `json`: structured JSON output (`task.toJSON()` / array of `toJSON()` objects)
+- `quiet`: suppresses non-error output
+
 ### Task Identifier Formats
 
 Commands accepting `<task-identifier>` support:
@@ -105,12 +129,13 @@ Commands accepting `<task-identifier>` support:
 `mdBook` source files live in `docs/src/`.
 
 Key pages:
-- `chapter_1.md` / `introduction.md`
+- `introduction.md`
 - `installation.md`
 - `cli.md`
 - `specifications.md`
 - `guides/`
 - `reference/`
+  - module-level API pages (`constants`, `models/*`, `utils/*`)
 - `SUMMARY.md`
 
 Build docs with:
@@ -127,6 +152,7 @@ For multi-step work, prefer dogfooding `taskdb` itself:
 2. Move one task to `in-progress` while actively working.
 3. Add comments for notable progress/decisions.
 4. Mark completed work with `taskdb complete <task-identifier>`.
+5. Show the `taskdb` commands and outputs when updating/closing those tasks.
 
 ### CLI Framework
 
