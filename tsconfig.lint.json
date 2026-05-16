@@ -1,5 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": ["taskdb.ts", "index.ts", "src/**/*.ts"],
-  "exclude": ["tests/**/*"]
-}
