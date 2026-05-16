@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import type { OutputFn } from "./types.ts";
-// import { registerAllCommands } from "./commands/index.ts";
+import { registerAllCommands } from "./commands/index.ts";
 
 /** Emit multi-line Commander output through our output function, line by line. */
 function makeWriteFn(output: OutputFn): (str: string) => void {
@@ -12,7 +12,7 @@ function makeWriteFn(output: OutputFn): (str: string) => void {
  * Build and return a fully configured Commander program.
  *
  * Separating construction from execution makes the program testable without
- * having to spawn a subprocess.
+ * spawning a subprocess.
  */
 export function createProgram(output: OutputFn = console.log): Command {
   const write = makeWriteFn(output);
@@ -23,7 +23,12 @@ export function createProgram(output: OutputFn = console.log): Command {
     )
     .usage("<command> [options]")
     .exitOverride()
-    .configureOutput({ writeOut: write, writeErr: write });
+    .configureOutput({ writeOut: write, writeErr: write })
+    .option(
+      "--project <path>",
+      "Path to the project root directory",
+      process.env.TASKDB_PROJECT_PATH ?? ".tasks",
+    );
 
   // `help` subcommand — delegates to Commander's built-in help output.
   program
@@ -31,13 +36,7 @@ export function createProgram(output: OutputFn = console.log): Command {
     .description("Show help information.")
     .action(() => program.outputHelp());
 
-  // NOTE: No default .action() on the program.  If we add one, Commander
-  // treats unknown subcommand names as excess arguments to that action
-  // (commander.excessArguments) rather than raising commander.unknownCommand.
-  // We handle the zero-args case explicitly in run() instead.
-
-  // FIXME: Commented until there are commands to hook up once again.
-  // registerAllCommands(program, output);
+  registerAllCommands(program, output);
 
   return program;
 }
@@ -56,8 +55,7 @@ export async function run(
 ): Promise<number> {
   const program = createProgram(output);
 
-  // No args — show help and exit cleanly (avoids needing a default action that
-  // would misroute unknown subcommand names as excess arguments).
+  // No args — show help and exit cleanly.
   if (args.length === 0) {
     program.outputHelp();
     return 0;

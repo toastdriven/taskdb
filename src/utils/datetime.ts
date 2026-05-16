@@ -1,14 +1,10 @@
 /**
  * Return an RFC 3339 datetime string with the local UTC offset and millisecond
- * precision. Default uses the current date/time if nothing is provided.
+ * precision. Accepts an optional Date; defaults to the current date/time.
  *
- * @example "2026-05-14T18:26:13.246-05:00"
+ * @example makeRfc3339() → "2026-05-14T18:26:13.246-05:00"
  */
-export function makeRfc3339(date?: Date = null): string {
-  if (!date) {
-    date = new Date();
-  }
-
+export function makeRfc3339(date: Date = new Date()): string {
   const offsetMinutes = -date.getTimezoneOffset(); // positive = east of UTC
   const sign = offsetMinutes >= 0 ? "+" : "-";
   const absMinutes = Math.abs(offsetMinutes);
