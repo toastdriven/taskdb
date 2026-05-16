@@ -1,6 +1,6 @@
 # Reference
 
-This section documents taskdb internals and implementation-facing behavior.
+This section documents `taskdb` internals and implementation-facing behavior.
 
 Use this when you need architecture details, data contracts, or code-level orientation.
 

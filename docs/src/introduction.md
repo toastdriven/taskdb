@@ -1,12 +1,12 @@
 # Introduction
 
-**taskdb** is a zero-config task tracker that lives entirely in plain Markdown files. No database, no server, no account required — just a `.tasks/` folder sitting right inside your project.
+**`taskdb`** is a zero-config task tracker that lives entirely in plain Markdown files. No database, no server, no account required — just a `.tasks/` folder sitting right inside your project.
 
 It's designed to be fast to pick up, impossible to vendor-lock, and friendly to both humans _and_ LLMs.
 
 ---
 
-## Why taskdb?
+## Why `taskdb`?
 
 - **Human-readable files:** Every task is a `.md` file with YAML frontmatter. Open it in any editor, read it in any diff tool, commit it to git.
 - **Statuses as directories:** A task's status is determined by which directory holds its symlink — no magic fields, no migrations.

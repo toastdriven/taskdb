@@ -1,6 +1,6 @@
 # `src/constants.ts`
 
-Shared constants used across taskdb, with optional environment-variable overrides.
+Shared constants used across `taskdb`, with optional environment-variable overrides.
 
 ## Exports
 

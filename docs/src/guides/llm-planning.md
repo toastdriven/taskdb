@@ -1,6 +1,6 @@
-# Guide: LLM/agent planning workflow with taskdb
+# Guide: LLM/agent planning workflow with `taskdb`
 
-taskdb is a good fit for agentic workflows because each task is a file and every status change is explicit.
+`taskdb` is a good fit for agentic workflows because each task is a file and every status change is explicit.
 
 ## Example feature request
 

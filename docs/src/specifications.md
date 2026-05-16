@@ -1,6 +1,6 @@
 # Specifications
 
-This page defines the behavioral/data contract for taskdb.
+This page defines the behavioral/data contract for `taskdb`.
 
 ## Filestructure Layout
 

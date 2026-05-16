@@ -1,4 +1,4 @@
-# taskdb
+# `taskdb`
 
 A zero-config task tracker CLI, powered by human-readable & machine-friendly Markdown files.
 
@@ -10,7 +10,7 @@ Ideal for:
 
 ---
 
-## Why taskdb?
+## Why `taskdb`?
 
 - **Human-readable files:** Every task is a `.md` file with YAML frontmatter. Open it in any editor, read it in any diff tool, commit it to git.
 - **Statuses as directories:** A task's status is determined by which directory holds its symlink — no magic fields, no migrations.

@@ -1,6 +1,6 @@
 # `src/models/project.ts` (`Project`)
 
-Represents a taskdb project root (`.tasks`) and manages filesystem/status operations.
+Represents a `taskdb` project root (`.tasks`) and manages filesystem/status operations.
 
 ## Types
 

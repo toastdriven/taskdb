@@ -1,6 +1,6 @@
-# Guide: taskdb as a lightweight GitHub Issues replacement
+# Guide: `taskdb` as a lightweight GitHub Issues replacement
 
-For small teams/projects, taskdb can replace Issues with local, versioned task files.
+For small teams/projects, `taskdb` can replace Issues with local, versioned task files.
 
 ## Why this works
 

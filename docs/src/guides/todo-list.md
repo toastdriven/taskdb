@@ -1,6 +1,6 @@
-# Guide: Use taskdb as a simple TODO tracker
+# Guide: Use `taskdb` as a simple TODO tracker
 
-If you just want a clean personal TODO workflow, taskdb works well with a tiny status flow:
+If you just want a clean personal TODO workflow, `taskdb` works well with a tiny status flow:
 
 - `ready`
 - `in-progress`

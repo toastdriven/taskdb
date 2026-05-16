@@ -28,7 +28,7 @@ Many commands accept a `<task-identifier>`. This can be:
 ## Commands
 
 ### `init`
-Create taskdb directory structure.
+Create `taskdb` directory structure.
 
 ```bash
 taskdb init [--format quiet|plain|json]
