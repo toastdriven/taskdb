@@ -30,6 +30,12 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Setup just
+        uses: taiki-e/install-action@just
+
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 

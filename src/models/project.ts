@@ -368,9 +368,15 @@ export class Project {
     const allDir = join(this.path, ALL_TASKS_DIR);
 
     const useRg = await this._isRipgrepAvailable();
-    const result = useRg
+    let result = useRg
       ? await Bun.$`rg -l ${query} ${allDir}`.quiet().nothrow()
       : await Bun.$`grep -rl ${query} ${allDir}`.quiet().nothrow();
+
+    // If rg was selected but fails at runtime (e.g. missing binary on CI),
+    // fall back to grep.
+    if (useRg && result.exitCode !== 0) {
+      result = await Bun.$`grep -rl ${query} ${allDir}`.quiet().nothrow();
+    }
 
     const files = result.stdout
       .toString()
