@@ -1,34 +1,18 @@
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { toSlug } from "../utils/slug.ts";
-import type { ProjectStatus, TaskStatus } from "../types.ts";
 
 interface ProjectParams {
-  name: string;
-  slug: string;
-  /** Absolute path to the project directory (e.g. `/…/.tasks/my-project`). */
-  path: string;
-  description?: string;
-  status?: ProjectStatus;
-  tasks?: TaskStatus[];
+  /** Absolute path to the project directory (e.g. `/…/.tasks/`). */
+  path: string = '.tasks';
 }
 
 export class Project {
-  name: string;
-  slug: string;
   /** Absolute path to the project directory. */
   path: string;
-  description?: string;
-  status: ProjectStatus;
-  tasks: TaskStatus[];
 
   constructor(params: ProjectParams) {
-    this.name = params.name;
-    this.slug = params.slug;
     this.path = params.path;
-    this.description = params.description;
-    this.status = params.status ?? "ready";
-    this.tasks = params.tasks ?? [];
   }
 
   // ---------------------------------------------------------------------------

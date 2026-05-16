@@ -1,33 +1,29 @@
 import { unlink } from "node:fs/promises";
 import { join } from "node:path";
-import { parse, stringify } from "smol-toml";
-import type { TaskLabel, TaskLifecycleStatus, TaskUpdate } from "../types.ts";
 import { makeRfc3339 } from "../utils/datetime.ts";
 import { toSlug } from "../utils/slug.ts";
 
 interface TaskParams {
-  number: number;
+  id: number;
   name: string;
   slug: string;
   /** Absolute path to the parent project root (e.g. `/…/.tasks/my-project`). */
   projectPath: string;
   description: string;
-  label: TaskLabel;
-  status: TaskLifecycleStatus;
+  labels: string[];
   created: string;
   updated: string;
-  updates?: TaskUpdate[];
+  comments?: TaskUpdate[];
 }
 
 export class Task {
-  number: number;
+  id: number;
   name: string;
   slug: string;
   /** Absolute path to the parent project root. */
   projectPath: string;
   description: string;
-  label: TaskLabel;
-  status: TaskLifecycleStatus;
+  labels: string[];
   /** RFC 3339 datetime when the task was created. */
   created: string;
   /** RFC 3339 datetime when the task was last updated. */

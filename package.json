@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "commander": "^14.0.3",
-    "smol-toml": "^1.6.1"
+    "gray-matter": "^4.0.3"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -1,10 +1,11 @@
 import { Command } from "commander";
 import type { OutputFn } from "./types.ts";
-import { registerAllCommands } from "./commands/index.ts";
+// import { registerAllCommands } from "./commands/index.ts";
 
 /** Emit multi-line Commander output through our output function, line by line. */
 function makeWriteFn(output: OutputFn): (str: string) => void {
-  return (str: string) => str.split("\n").forEach((line) => output(line.trimEnd()));
+  return (str: string) =>
+    str.split("\n").forEach((line) => output(line.trimEnd()));
 }
 
 /**
@@ -17,7 +18,9 @@ export function createProgram(output: OutputFn = console.log): Command {
   const write = makeWriteFn(output);
 
   const program = new Command("taskdb")
-    .description("A flat-file task tracker.")
+    .description(
+      "A zero-config task tracker CLI, powered by (human-readable) flatfiles.",
+    )
     .usage("<command> [options]")
     .exitOverride()
     .configureOutput({ writeOut: write, writeErr: write });
@@ -33,7 +36,8 @@ export function createProgram(output: OutputFn = console.log): Command {
   // (commander.excessArguments) rather than raising commander.unknownCommand.
   // We handle the zero-args case explicitly in run() instead.
 
-  registerAllCommands(program, output);
+  // FIXME: Commented until there are commands to hook up once again.
+  // registerAllCommands(program, output);
 
   return program;
 }
@@ -46,7 +50,10 @@ export function createProgram(output: OutputFn = console.log): Command {
  *
  * Returns the intended exit code (0 = success, non-zero = error).
  */
-export async function run(args: string[], output: OutputFn = console.log): Promise<number> {
+export async function run(
+  args: string[],
+  output: OutputFn = console.log,
+): Promise<number> {
   const program = createProgram(output);
 
   // No args — show help and exit cleanly (avoids needing a default action that
@@ -62,7 +69,9 @@ export async function run(args: string[], output: OutputFn = console.log): Promi
   } catch (e: any) {
     if (e.code === "commander.unknownCommand") {
       const unknown = args[0] ?? "";
-      output(`taskdb: unknown command "${unknown}". Run "taskdb help" for usage.`);
+      output(
+        `taskdb: unknown command "${unknown}". Run "taskdb help" for usage.`,
+      );
       return 1;
     }
     // Re-throw unexpected errors.
