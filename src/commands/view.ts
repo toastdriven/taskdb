@@ -1,7 +1,12 @@
 import type { Command } from "commander";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
-import { formatTask, getProjectPath, requireTask } from "./helpers.ts";
+import {
+  formatFullTask,
+  formatTaskJSON,
+  getProjectPath,
+  requireTask,
+} from "./helpers.ts";
 
 /**
  * Handle `taskdb view <task-identifier>`.
@@ -26,10 +31,13 @@ export async function viewCommand(
   const task = await requireTask(project, identifier, output);
   if (!task) return;
 
+  if (opts.format === "quiet") return;
+  if (opts.format === "json") return formatTaskJSON(task, output);
+
   if (opts.format === "raw") {
     output(await Bun.file(task.filePath).text());
     return;
   }
 
-  formatTask(task, opts.format, output);
+  formatFullTask(task, output);
 }

@@ -1,7 +1,12 @@
 import type { Command } from "commander";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
-import { formatTask, getProjectPath, parseLabelsOption } from "./helpers.ts";
+import {
+  formatTask,
+  formatTaskJSON,
+  getProjectPath,
+  parseLabelsOption,
+} from "./helpers.ts";
 
 /**
  * Handle `taskdb create <title>`.
@@ -19,7 +24,12 @@ export async function createCommand(
   program: Command,
   output: OutputFn,
   title: string,
-  opts: { description: string; status: string; labels?: string; format: string },
+  opts: {
+    description: string;
+    status: string;
+    labels?: string;
+    format: string;
+  },
 ): Promise<void> {
   const projectPath = getProjectPath(program.opts());
   const project = new Project({ path: projectPath });
@@ -29,7 +39,8 @@ export async function createCommand(
     return;
   }
 
-  const labels = opts.labels !== undefined ? parseLabelsOption(opts.labels, output) : [];
+  const labels =
+    opts.labels !== undefined ? parseLabelsOption(opts.labels, output) : [];
   if (labels === null) return;
 
   const task = await project.createTask(
@@ -40,5 +51,8 @@ export async function createCommand(
     opts.format !== "quiet" ? output : undefined,
   );
 
-  formatTask(task, opts.format, output);
+  if (opts.format === "quiet") return;
+  if (opts.format === "json") return formatTaskJSON(task, output);
+
+  formatTask(task, output);
 }

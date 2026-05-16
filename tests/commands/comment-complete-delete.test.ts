@@ -30,9 +30,11 @@ afterEach(async () => {
 
 describe("commands: comment/complete/delete", () => {
   test("comment appends comment", async () => {
-    await commentCommand(fakeProgram(projectPath), () => {}, "1", "note", {
-      format: "quiet",
+    const plainOut = capture();
+    await commentCommand(fakeProgram(projectPath), plainOut.output, "1", "note", {
+      format: "plain",
     });
+    expect(plainOut.lines[0]).toBe("#1: T - (Ready)");
 
     const out = capture();
     await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "json" });
@@ -43,9 +45,11 @@ describe("commands: comment/complete/delete", () => {
   });
 
   test("complete moves status and adds audit comment", async () => {
-    await completeCommand(fakeProgram(projectPath), () => {}, "1", {
-      format: "quiet",
+    const plainOut = capture();
+    await completeCommand(fakeProgram(projectPath), plainOut.output, "1", {
+      format: "plain",
     });
+    expect(plainOut.lines[0]).toBe("#1: T - (Complete)");
 
     const out = capture();
     await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "json" });

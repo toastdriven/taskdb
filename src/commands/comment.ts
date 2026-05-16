@@ -1,7 +1,12 @@
 import type { Command } from "commander";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
-import { formatTask, getProjectPath, requireTask } from "./helpers.ts";
+import {
+  formatTask,
+  formatTaskJSON,
+  getProjectPath,
+  requireTask,
+} from "./helpers.ts";
 
 /**
  * Handle `taskdb comment <task-identifier> <comment>`.
@@ -29,5 +34,9 @@ export async function commentCommand(
   if (!task) return;
 
   await task.addComment(comment);
-  formatTask(task, opts.format, output);
+
+  if (opts.format === "quiet") return;
+  if (opts.format === "json") return formatTaskJSON(task, output);
+
+  formatTask(task, output);
 }

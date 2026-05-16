@@ -2,6 +2,7 @@ import { DEFAULT_PROJECT_PATH } from "../constants.ts";
 import { Project } from "../models/project.ts";
 import { Task } from "../models/task.ts";
 import type { OutputFn } from "../types.ts";
+import { capitalizeFirst } from "../utils/strings.ts";
 
 /**
  * Resolve the taskdb project path from global CLI options and environment.
@@ -15,7 +16,11 @@ import type { OutputFn } from "../types.ts";
  * @returns Absolute or relative project path to use for this invocation.
  */
 export function getProjectPath(globalOpts: { project?: string }): string {
-  return globalOpts.project ?? process.env.TASKDB_PROJECT_PATH ?? DEFAULT_PROJECT_PATH;
+  return (
+    globalOpts.project ??
+    process.env.TASKDB_PROJECT_PATH ??
+    DEFAULT_PROJECT_PATH
+  );
 }
 
 /**
@@ -43,33 +48,50 @@ export function parseLabelsOption(
 }
 
 /**
- * Render one task for command output.
- *
- * - `quiet`: no output
- * - `json`: serialized task object
- * - `plain`: human-readable summary + optional description/comments
+ * Render one task as JSON for command output.
  *
  * @param task Task to render.
- * @param format Output mode (`quiet`, `plain`, or `json`).
  * @param output Output sink.
  */
-export function formatTask(task: Task, format: string, output: OutputFn): void {
-  if (format === "quiet") return;
+export function formatTaskJSON(task: Task, output: OutputFn): void {
+  output(JSON.stringify(task.toJSON(), null, 2));
+  return;
+}
 
-  if (format === "json") {
-    output(JSON.stringify(task.toJSON(), null, 2));
-    return;
-  }
-
+/**
+ * Render one task as a single terse line for command output.
+ *
+ * @param task Task to render.
+ * @param output Output sink.
+ */
+export function formatTask(task: Task, output: OutputFn): void {
   const idPad = Task.idPad(task.id);
-  const statusStr = task.status ? ` (${task.status})` : "";
-  output(`[${idPad}] ${task.title}${statusStr}`);
+  const statusStr = task.status ? ` - (${capitalizeFirst(task.status)})` : "";
+  const labelsStr =
+    task.labels.length > 0 ? ` - [${task.labels.join(", ")}]` : "";
+  output(`#${task.id}: ${task.title}${statusStr}${labelsStr}`);
+}
+
+/**
+ * Render one task in full for command output.
+ *
+ * @param task Task to render.
+ * @param output Output sink.
+ */
+export function formatFullTask(task: Task, output: OutputFn): void {
+  const idPad = Task.idPad(task.id);
+  const statusStr = task.status ? `${task.status}` : "";
+  output(`Id: #${task.id}`);
+  output(`Title: ${task.title}`);
+  output(`Slug: ${task.slug}`);
+  output(`Status: ${statusStr}`);
 
   if (task.labels.length > 0) {
     output(`Labels:  ${task.labels.join(", ")}`);
   }
   output(`Created: ${task.created}`);
   output(`Updated: ${task.updated}`);
+  output(`Full Path: ${task.filePath}`);
 
   if (task.description.trim()) {
     output("");
@@ -86,31 +108,36 @@ export function formatTask(task: Task, format: string, output: OutputFn): void {
 }
 
 /**
- * Render a list of tasks for command output.
- *
- * - `json`: array of serialized task objects
- * - `plain`: one summary line per task
+ * Render a list of tasks as JSON for command output.
  *
  * @param tasks Tasks to render.
- * @param format Output mode (`plain` or `json`).
  * @param output Output sink.
  */
-export function formatTaskList(tasks: Task[], format: string, output: OutputFn): void {
-  if (format === "json") {
-    output(JSON.stringify(tasks.map((t) => t.toJSON()), null, 2));
-    return;
-  }
+export function formatTaskListJSON(tasks: Task[], output: OutputFn): void {
+  output(
+    JSON.stringify(
+      tasks.map((t) => t.toJSON()),
+      null,
+      2,
+    ),
+  );
+  return;
+}
 
+/**
+ * Render a list of tasks for command output.
+ *
+ * @param tasks Tasks to render.
+ * @param output Output sink.
+ */
+export function formatTaskList(tasks: Task[], output: OutputFn): void {
   if (tasks.length === 0) {
     output("No tasks found.");
     return;
   }
 
   for (const task of tasks) {
-    const idPad = Task.idPad(task.id);
-    const labels = task.labels.length > 0 ? ` [${task.labels.join(", ")}]` : "";
-    const status = task.status ? ` (${task.status})` : "";
-    output(`[${idPad}] ${task.title}${labels}${status}`);
+    formatTask(task, output);
   }
 }
 

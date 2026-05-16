@@ -1,7 +1,11 @@
 import type { Command } from "commander";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
-import { formatTaskList, getProjectPath } from "./helpers.ts";
+import {
+  formatTaskList,
+  formatTaskListJSON,
+  getProjectPath,
+} from "./helpers.ts";
 
 /**
  * Handle `taskdb search <query>`.
@@ -25,5 +29,8 @@ export async function searchCommand(
   const project = new Project({ path: projectPath });
 
   const tasks = await project.searchTasks(query);
-  formatTaskList(tasks, opts.format, output);
+
+  if (opts.format === "json") return formatTaskListJSON(tasks, output);
+
+  formatTaskList(tasks, output);
 }

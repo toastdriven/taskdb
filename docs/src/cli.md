@@ -12,7 +12,7 @@ Many commands, where relevant, also support `--format <output-format>`. This def
 Valid formats:
 
 - `quiet` - no non-error output
-- `plain` - plain text CLI output
+- `plain` - plain text CLI output (single-line summaries for most commands; full multi-line details for `view`)
 - `json` - structured JSON output
 
 ## Task identifiers

@@ -2,7 +2,12 @@ import type { Command } from "commander";
 import { COMPLETE_TASKS_DIR } from "../constants.ts";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
-import { formatTask, getProjectPath, requireTask } from "./helpers.ts";
+import {
+  formatTask,
+  formatTaskJSON,
+  getProjectPath,
+  requireTask,
+} from "./helpers.ts";
 
 /**
  * Handle `taskdb complete <task-identifier>`.
@@ -36,5 +41,8 @@ export async function completeCommand(
     `Status changed from ${previousStatus} to ${COMPLETE_TASKS_DIR}`,
   );
 
-  formatTask(task, opts.format, output);
+  if (opts.format === "quiet") return;
+  if (opts.format === "json") return formatTaskJSON(task, output);
+
+  formatTask(task, output);
 }

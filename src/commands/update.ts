@@ -1,7 +1,13 @@
 import type { Command } from "commander";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
-import { formatTask, getProjectPath, parseLabelsOption, requireTask } from "./helpers.ts";
+import {
+  formatTask,
+  formatTaskJSON,
+  getProjectPath,
+  parseLabelsOption,
+  requireTask,
+} from "./helpers.ts";
 
 /**
  * Handle `taskdb update <task-identifier>`.
@@ -19,7 +25,13 @@ export async function updateCommand(
   program: Command,
   output: OutputFn,
   identifier: string,
-  opts: { title?: string; description?: string; status?: string; labels?: string; format: string },
+  opts: {
+    title?: string;
+    description?: string;
+    status?: string;
+    labels?: string;
+    format: string;
+  },
 ): Promise<void> {
   const projectPath = getProjectPath(program.opts());
   const project = new Project({ path: projectPath });
@@ -30,7 +42,8 @@ export async function updateCommand(
   const warn = opts.format !== "quiet" ? output : undefined;
 
   if (opts.title !== undefined) await task.updateTitle(opts.title);
-  if (opts.description !== undefined) await task.updateDescription(opts.description);
+  if (opts.description !== undefined)
+    await task.updateDescription(opts.description);
 
   if (opts.labels !== undefined) {
     const labels = parseLabelsOption(opts.labels, output);
@@ -41,8 +54,13 @@ export async function updateCommand(
   if (opts.status !== undefined) {
     const previousStatus = task.status ?? "(none)";
     await project.transitionStatus(task, opts.status, warn);
-    await task.addComment(`Status changed from ${previousStatus} to ${opts.status}`);
+    await task.addComment(
+      `Status changed from ${previousStatus} to ${opts.status}`,
+    );
   }
 
-  formatTask(task, opts.format, output);
+  if (opts.format === "quiet") return;
+  if (opts.format === "json") return formatTaskJSON(task, output);
+
+  formatTask(task, output);
 }

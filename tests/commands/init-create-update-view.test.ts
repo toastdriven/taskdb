@@ -80,6 +80,43 @@ describe("commands: init/create/update/view", () => {
     expect(viewed.status).toBe("done");
   });
 
+  test("create and update plain output use terse single-line format", async () => {
+    await initCommand(fakeProgram(projectPath), () => {}, { format: "quiet" });
+
+    const createOut = capture();
+    await createCommand(fakeProgram(projectPath), createOut.output, "Alpha", {
+      description: "",
+      status: "in-progress",
+      labels: '["feat"]',
+      format: "plain",
+    });
+    expect(createOut.lines).toEqual(["#1: Alpha - (In-progress) - [feat]"]);
+
+    const updateOut = capture();
+    await updateCommand(fakeProgram(projectPath), updateOut.output, "1", {
+      status: "done",
+      format: "plain",
+    });
+    expect(updateOut.lines[0]).toBe("#1: Alpha - (Done) - [feat]");
+  });
+
+  test("view plain returns full multi-line output", async () => {
+    await initCommand(fakeProgram(projectPath), () => {}, { format: "quiet" });
+    await createCommand(fakeProgram(projectPath), () => {}, "Rawy", {
+      description: "raw body",
+      status: "ready",
+      format: "quiet",
+    });
+
+    const out = capture();
+    await viewCommand(fakeProgram(projectPath), out.output, "1", { format: "plain" });
+    const text = out.lines.join("\n");
+    expect(text).toContain("Id: #1");
+    expect(text).toContain("Title: Rawy");
+    expect(text).toContain("Status: ready");
+    expect(text).toContain("Full Path:");
+  });
+
   test("view raw returns markdown", async () => {
     await initCommand(fakeProgram(projectPath), () => {}, { format: "quiet" });
     await createCommand(fakeProgram(projectPath), () => {}, "Rawy", {

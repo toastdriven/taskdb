@@ -1,7 +1,12 @@
 import type { Command } from "commander";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
-import { formatTaskList, getProjectPath, parseLabelsOption } from "./helpers.ts";
+import {
+  formatTaskList,
+  formatTaskListJSON,
+  getProjectPath,
+  parseLabelsOption,
+} from "./helpers.ts";
 
 /**
  * Handle `taskdb list`.
@@ -28,15 +33,22 @@ export async function listCommand(
   const projectPath = getProjectPath(program.opts());
   const project = new Project({ path: projectPath });
 
-  const labels = opts.labels !== undefined ? parseLabelsOption(opts.labels, output) : undefined;
+  const labels =
+    opts.labels !== undefined
+      ? parseLabelsOption(opts.labels, output)
+      : undefined;
   if (labels === null) return;
 
   const tasks = await project.listTasks({
     status: opts.status,
     labels,
-    updatedBefore: opts.updatedBefore ? new Date(opts.updatedBefore) : undefined,
+    updatedBefore: opts.updatedBefore
+      ? new Date(opts.updatedBefore)
+      : undefined,
     updatedAfter: opts.updatedAfter ? new Date(opts.updatedAfter) : undefined,
   });
 
-  formatTaskList(tasks, opts.format, output);
+  if (opts.format === "json") return formatTaskListJSON(tasks, output);
+
+  formatTaskList(tasks, output);
 }

@@ -13,6 +13,7 @@ Use this when you need architecture details, data contracts, or code-level orien
 - [Datetime Utility API (`src/utils/datetime.ts`)](./util-datetime.md)
 - [Env Utility API (`src/utils/env.ts`)](./util-env.md)
 - [Slug Utility API (`src/utils/slug.ts`)](./util-slug.md)
+- [Strings Utility API (`src/utils/strings.ts`)](./util-strings.md)
 
 ## Related docs
 

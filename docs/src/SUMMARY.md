@@ -15,4 +15,5 @@
   - [Datetime Utility API (`src/utils/datetime.ts`)](./reference/util-datetime.md)
   - [Env Utility API (`src/utils/env.ts`)](./reference/util-env.md)
   - [Slug Utility API (`src/utils/slug.ts`)](./reference/util-slug.md)
+  - [Strings Utility API (`src/utils/strings.ts`)](./reference/util-strings.md)
 - [Specifications](./specifications.md)

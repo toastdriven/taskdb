@@ -26,9 +26,9 @@ Ideal for:
 $ taskdb init
 Initialised project at: .tasks
 
-# Create your first task. You get back the task id & a quick view of the created task.
+# Create your first task. You get back the task id & a quick one-line summary.
 $ taskdb create "Write the README"
-\#1: Write the README (ready)
+\#1: Write the README - (Ready)
 
 # You can view the whole task.
 $ taskdb view 1
@@ -40,14 +40,14 @@ $ taskdb search "README"
 
 # Make updates & change status.
 $ taskdb update 1 --description="Flesh out the README.md file" --status="in-progress"
-\#1: Write the README (in-progress)
+\#1: Write the README - (In-progress)
 
 # Make comments.
 $ taskdb comment 1 "Drafted the installation section"
 
 # And complete tasks when you're done.
 $ taskdb complete 1
-\#1: Write the README (complete)
+\#1: Write the README - (Complete)
 ```
 
 ---

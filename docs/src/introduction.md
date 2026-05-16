@@ -48,21 +48,18 @@ This creates a `.tasks/` directory with the standard status folders (`ready`, `i
 
 ```bash
 $ taskdb create "Write the README"
-[00001] Write the README (ready)
-Created: 2026-05-16T09:00:00.000-05:00
-Updated: 2026-05-16T09:00:00.000-05:00
+#1: Write the README - (Ready)
 ```
 
 ### 4. Move it along
 
 ```bash
 $ taskdb update 1 --status=in-progress
-[00001] Write the README (in-progress)
-...
+#1: Write the README - (In-progress)
 
 $ taskdb comment 1 "Drafted the installation section"
 $ taskdb complete 1
-[00001] Write the README (complete)
+#1: Write the README - (Complete)
 ```
 
 ### 5. See what's going on

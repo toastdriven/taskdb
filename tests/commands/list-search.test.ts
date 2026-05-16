@@ -54,6 +54,17 @@ describe("commands: list/search", () => {
     expect(items[0].title).toBe("Beta");
   });
 
+  test("list plain output uses terse lines", async () => {
+    const out = capture();
+    await listCommand(fakeProgram(projectPath), out.output, {
+      format: "plain",
+    });
+
+    expect(out.lines[0]).toBe("#1: Alpha - (Ready) - [feat]");
+    expect(out.lines[1]).toBe("#2: Beta - (In-progress) - [feat, urgent]");
+    expect(out.lines[2]).toBe("#3: Gamma - (Done) - [chore]");
+  });
+
   test("search returns matches", async () => {
     const out = capture();
     await searchCommand(fakeProgram(projectPath), out.output, "needle", {
@@ -62,6 +73,19 @@ describe("commands: list/search", () => {
 
     const items = JSON.parse(out.lines.join("\n"));
     expect(items).toHaveLength(2);
-    expect(items.map((t: { title: string }) => t.title)).toEqual(["Alpha", "Beta"]);
+    expect(items.map((t: { title: string }) => t.title)).toEqual([
+      "Alpha",
+      "Beta",
+    ]);
+  });
+
+  test("search plain output uses terse lines", async () => {
+    const out = capture();
+    await searchCommand(fakeProgram(projectPath), out.output, "needle", {
+      format: "plain",
+    });
+
+    expect(out.lines[0]).toBe("#1: Alpha - (Ready) - [feat]");
+    expect(out.lines[1]).toBe("#2: Beta - (In-progress) - [feat, urgent]");
   });
 });
