@@ -8,10 +8,10 @@ It's designed to be fast to pick up, impossible to vendor-lock, and friendly to 
 
 ## Why taskdb?
 
-- **Human-readable files.** Every task is a `.md` file with YAML frontmatter. Open it in any editor, read it in any diff tool, commit it to git.
-- **Statuses as directories.** A task's status is determined by which directory holds its symlink — no magic fields, no migrations.
-- **LLM-native.** Agents can create, update, comment on, and complete tasks using a dead-simple CLI. Great for planning and tracking work mid-session.
-- **Truly zero-config.** Run `taskdb init` once and you're done. No config file needed.
+- **Human-readable files:** Every task is a `.md` file with YAML frontmatter. Open it in any editor, read it in any diff tool, commit it to git.
+- **Statuses as directories:** A task's status is determined by which directory holds its symlink — no magic fields, no migrations.
+- **LLM-native:** Agents can create, update, comment on, and complete tasks using a dead-simple CLI. Great for planning and tracking work mid-session.
+- **Truly zero-config:** Run `taskdb init` once and you're done. No config file needed, though there are plenty of override capabilities built-in w/ environment variables.
 
 ---
 
@@ -19,11 +19,15 @@ It's designed to be fast to pick up, impossible to vendor-lock, and friendly to 
 
 ### 1. Install
 
-```bash
-# Option A: release binary install (recommended)
-curl -fsSL https://raw.githubusercontent.com/toastdriven/taskdb/main/scripts/install.sh | bash
+Option A: release binary install (recommended)
 
-# Option B: global package install
+```bash
+curl -fsSL https://raw.githubusercontent.com/toastdriven/taskdb/main/scripts/install.sh | bash
+```
+
+Option B: global package install
+
+```bash
 bun add -g taskdb
 ```
 

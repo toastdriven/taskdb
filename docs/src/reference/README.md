@@ -6,11 +6,13 @@ Use this when you need architecture details, data contracts, or code-level orien
 
 ## In this section
 
-- [API Reference](./api.md)
-  - Entry points (`taskdb.ts`, `src/cli.ts`)
-  - Command registration
-  - `Project` and `Task` model responsibilities
-  - Shared utility and type modules
+- [API Overview](./api.md)
+- [Constants API (`src/constants.ts`)](./constants.md)
+- [Task Model API (`src/models/task.ts`)](./model-task.md)
+- [Project Model API (`src/models/project.ts`)](./model-project.md)
+- [Datetime Utility API (`src/utils/datetime.ts`)](./util-datetime.md)
+- [Env Utility API (`src/utils/env.ts`)](./util-env.md)
+- [Slug Utility API (`src/utils/slug.ts`)](./util-slug.md)
 
 ## Related docs
 

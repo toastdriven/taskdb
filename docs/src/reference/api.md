@@ -1,6 +1,6 @@
-# API Reference
+# API Overview
 
-This document covers the internal TypeScript API used by the CLI.
+This page summarizes internal module boundaries. Detailed API docs are split per source file.
 
 ## Entry points
 
@@ -9,55 +9,19 @@ This document covers the internal TypeScript API used by the CLI.
 
 ## CLI layer
 
-### `createProgram(output?)`
-Builds configured Commander instance:
-
-- global `--project <path>` option
-- `help` command
-- registers all subcommands via `registerAllCommands`
-
-### `run(args, output?)`
-Runs the CLI and returns numeric exit code.
+- `createProgram(output?)`: builds configured Commander instance and registers commands.
+- `run(args, output?)`: runs CLI and returns process-like exit code.
 
 ## Command registration
 
-`src/commands/index.ts` exports `registerAllCommands(program, output)`.
+- `src/commands/index.ts`: `registerAllCommands(program, output)`
+- Commands: `init`, `create`, `update`, `view`, `complete`, `delete`, `comment`, `list`, `search`.
 
-Registered commands:
-`init`, `create`, `update`, `view`, `complete`, `delete`, `comment`, `list`, `search`.
+## Detailed module API docs
 
-## Core models
-
-## `Task` (`src/models/task.ts`)
-Represents one task Markdown file.
-
-Key responsibilities:
-
-- ID/filename helpers (`idString`, `idPad`, `groupDir`)
-- Markdown/YAML serialization (`buildBody`, `buildFileContent`)
-- parsing (`parseBody`, `parseComments`, `read`)
-- persistence (`write`, `deleteFile`)
-- lifecycle mutations (`create`, `addComment`, `updateTitle`, `updateDescription`, `updateLabels`)
-
-## `Project` (`src/models/project.ts`)
-Represents a `.tasks` project root.
-
-Key responsibilities:
-
-- scaffold/init checks (`scaffold`, `isInitialized`)
-- status dir handling (`getStatusDirs`, `ensureStatusDir`, `transitionStatus`)
-- task resolution (`resolveTask`, `findTaskById`)
-- listing/search (`listTasks`, `searchTasks`)
-- creation/deletion (`createTask`, `deleteTask`)
-
-## Utility modules
-
-- `src/utils/datetime.ts`: `makeRfc3339(date?)`
-- `src/utils/slug.ts`: `toSlug(text)`
-
-## Shared types (`src/types.ts`)
-
-- `OutputFn`
-- `OutputFormat`
-- `ViewFormat`
-- `TaskComment`
+- [Constants API (`src/constants.ts`)](./constants.md)
+- [Task Model API (`src/models/task.ts`)](./model-task.md)
+- [Project Model API (`src/models/project.ts`)](./model-project.md)
+- [Datetime Utility API (`src/utils/datetime.ts`)](./util-datetime.md)
+- [Env Utility API (`src/utils/env.ts`)](./util-env.md)
+- [Slug Utility API (`src/utils/slug.ts`)](./util-slug.md)
