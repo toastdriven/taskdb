@@ -31,3 +31,6 @@ compile-all:
 
 @build-docs:
     cd docs && mdbook build
+
+publish-docs branch="gh-pages":
+    ./scripts/publish-docs.sh "{{branch}}"
