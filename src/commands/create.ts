@@ -4,9 +4,16 @@ import type { OutputFn } from "../types.ts";
 import { formatTask, getProjectPath, parseLabelsOption } from "./helpers.ts";
 
 /**
- * The `create` command.
+ * Handle `taskdb create <title>`.
  *
- * Create a new task with optional description, status, labels, and output format.
+ * Requires an initialized project, then creates a task with optional
+ * description/status/labels and renders it in the requested format.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param title Task title.
+ * @param opts Command options.
+ * @returns Promise that resolves when create flow completes.
  */
 export async function createCommand(
   program: Command,

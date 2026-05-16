@@ -4,9 +4,16 @@ import type { OutputFn } from "../types.ts";
 import { formatTask, getProjectPath, parseLabelsOption, requireTask } from "./helpers.ts";
 
 /**
- * The `update` command.
+ * Handle `taskdb update <task-identifier>`.
  *
- * Update title, description, labels, and/or status for an existing task.
+ * Applies field updates (title/description/labels) and optional status
+ * transition. Status transitions also append an audit comment.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param identifier Task identifier.
+ * @param opts Command options.
+ * @returns Promise that resolves when update flow completes.
  */
 export async function updateCommand(
   program: Command,

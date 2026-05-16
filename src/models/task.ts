@@ -1,6 +1,11 @@
 import matter from "gray-matter";
 import { mkdir, unlink } from "node:fs/promises";
 import { join } from "node:path";
+import {
+  ALL_TASKS_DIR,
+  COMMENTS_HEADER,
+  DESCRIPTION_HEADER,
+} from "../constants.ts";
 import type { TaskComment } from "../types.ts";
 import { makeRfc3339 } from "../utils/datetime.ts";
 import { toSlug } from "../utils/slug.ts";
@@ -20,6 +25,11 @@ interface TaskParams {
   status?: string;
 }
 
+/**
+ * Domain model representing one task file in a taskdb project.
+ *
+ * Encapsulates Markdown/YAML serialization, persistence, and common mutations.
+ */
 export class Task {
   id: number;
   slug: string;
@@ -36,6 +46,11 @@ export class Task {
   /** Current status directory name (filesystem-derived, not stored in file). */
   status?: string;
 
+  /**
+   * Create an in-memory task instance.
+   *
+   * @param params Task attributes and project context.
+   */
   constructor(params: TaskParams) {
     this.id = params.id;
     this.slug = params.slug;
@@ -77,6 +92,15 @@ export class Task {
     return String(Math.floor((id - 1) / 32768)).padStart(5, "0");
   }
 
+  /**
+   * Build the separator that joins description and comments sections.
+   *
+   * @returns Markdown separator including comments heading and spacing.
+   */
+  static buildCommentsSeparator(): string {
+    return `\n---\n\n${COMMENTS_HEADER}\n\n`;
+  }
+
   // ── Computed paths ──────────────────────────────────────────────────────────
 
   /** Filename (basename only): `<NNNNN>-<slug>.md` */
@@ -86,12 +110,12 @@ export class Task {
 
   /** Absolute path to the real task file inside `all/`. */
   get filePath(): string {
-    return join(this.projectPath, "all", Task.groupDir(this.id), this.filename);
+    return join(this.projectPath, ALL_TASKS_DIR, Task.groupDir(this.id), this.filename);
   }
 
   /** Absolute path to this task's group directory inside `all/`. */
   get groupDirPath(): string {
-    return join(this.projectPath, "all", Task.groupDir(this.id));
+    return join(this.projectPath, ALL_TASKS_DIR, Task.groupDir(this.id));
   }
 
   // ── Serialization ───────────────────────────────────────────────────────────
@@ -113,34 +137,35 @@ export class Task {
     description: string;
     comments: TaskComment[];
   } {
-    const COMMENTS_SEP = "\n---\n\n## Task Comments\n\n";
-    const COMMENTS_HEADER = "## Task Comments\n\n";
+    const commentsHeaderBlock = `${COMMENTS_HEADER}\n\n`;
+    const commentsSeparator = Task.buildCommentsSeparator();
 
     let descriptionRaw = "";
     let commentsRaw = "";
 
-    const sepIdx = content.indexOf(COMMENTS_SEP);
+    const sepIdx = content.indexOf(commentsSeparator);
     if (sepIdx !== -1) {
       descriptionRaw = content.slice(0, sepIdx);
-      commentsRaw = content.slice(sepIdx + COMMENTS_SEP.length);
+      commentsRaw = content.slice(sepIdx + commentsSeparator.length);
     } else {
       // No `---` separator — might start directly with the comments section
-      const hdrIdx = content.indexOf(COMMENTS_HEADER);
+      const hdrIdx = content.indexOf(commentsHeaderBlock);
       if (hdrIdx !== -1) {
         descriptionRaw = content.slice(0, hdrIdx);
-        commentsRaw = content.slice(hdrIdx + COMMENTS_HEADER.length);
+        commentsRaw = content.slice(hdrIdx + commentsHeaderBlock.length);
       } else {
         // No comments section at all (old or partial file)
         descriptionRaw = content;
       }
     }
 
-    // Strip optional "## Description\n\n" prefix
+    // Strip optional description heading prefix.
+    const descriptionHeaderBlock = `${DESCRIPTION_HEADER}\n\n`;
     let description = descriptionRaw.trim();
-    if (description.startsWith("## Description\n\n")) {
-      description = description.slice("## Description\n\n".length).trim();
-    } else if (description.startsWith("## Description")) {
-      description = description.slice("## Description".length).trim();
+    if (description.startsWith(descriptionHeaderBlock)) {
+      description = description.slice(descriptionHeaderBlock.length).trim();
+    } else if (description.startsWith(DESCRIPTION_HEADER)) {
+      description = description.slice(DESCRIPTION_HEADER.length).trim();
     }
 
     const comments = commentsRaw.trim() ? Task.parseComments(commentsRaw) : [];
@@ -177,21 +202,19 @@ export class Task {
    * Will be passed to `matter.stringify` as the content.
    */
   buildBody(): string {
-    const parts: string[] = [];
-
-    if (this.description.trim()) {
-      parts.push("## Description\n\n" + this.description.trim());
-    }
-
     const tableLines = [
       "| Commented At | Comment |",
       "| --- | --- |",
       ...this.comments.map((c) => `| ${c.commentedAt} | ${c.comment} |`),
     ];
-    parts.push("## Task Comments\n\n" + tableLines.join("\n"));
 
-    // Join sections with `\n\n---\n\n`; wrap with leading/trailing newlines
-    return "\n" + parts.join("\n\n---\n\n") + "\n";
+    if (this.description.trim()) {
+      const descriptionSection = `${DESCRIPTION_HEADER}\n\n${this.description.trim()}`;
+      const commentsSection = tableLines.join("\n");
+      return `\n${descriptionSection}${Task.buildCommentsSeparator()}${commentsSection}\n`;
+    }
+
+    return `\n${COMMENTS_HEADER}\n\n${tableLines.join("\n")}\n`;
   }
 
   /** Build the complete file content (YAML frontmatter + Markdown body). */
@@ -300,6 +323,11 @@ export class Task {
 
   // ── Presentation ─────────────────────────────────────────────────────────────
 
+  /**
+   * Convert this task to a JSON-serializable plain object.
+   *
+   * @returns Plain object suitable for CLI JSON output.
+   */
   toJSON(): object {
     return {
       id: this.id,

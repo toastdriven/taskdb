@@ -161,10 +161,25 @@ $ just compile target="bun-linux-x64" out="./dist/taskdb-linux-x64"
 $ just compile-all
 ```
 
-## Installing via curl | bash
+## Installation
+
+### Option A (recommended): curl | bash
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/toastdriven/taskdb/main/scripts/install.sh | bash
+```
+
+### Option B: global install with Bun
+
+```bash
+bun add -g taskdb
+```
+
+After install, use:
+
+```bash
+taskdb --help
+taskdb init
 ```
 
 ## Dependencies

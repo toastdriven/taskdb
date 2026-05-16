@@ -1,89 +1,43 @@
 # Installation
 
-taskdb runs on [Bun](https://bun.sh) — a fast JavaScript/TypeScript runtime. You'll need that installed first.
+The goal is to install once, then run `taskdb ...` directly from your shell.
 
----
-
-## Prerequisites
-
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| [Bun](https://bun.sh) | ≥ 1.0 | Runtime & package manager |
-| [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) | any | Optional — used by `taskdb search`. Falls back to `grep` if absent. |
-
-### Install Bun
+## Option A (recommended): install the release binary
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/toastdriven/taskdb/main/scripts/install.sh | bash
+```
+
+This installs `taskdb` to `/usr/local/bin` by default (or `$INSTALL_DIR` if set).
+
+## Option B: global install with Bun
+
+Requires [Bun](https://bun.sh):
+
+```bash
+# install Bun (if needed)
 curl -fsSL https://bun.sh/install | bash
+
+# install taskdb globally
+bun add -g taskdb
 ```
 
-Or via Homebrew on macOS:
+## Verify installation
 
 ```bash
-brew install bun
-```
-
----
-
-## Install taskdb
-
-### Option A — From source (recommended for now)
-
-Clone the repo and install dependencies:
-
-```bash
-$ git clone https://github.com/toastdriven/taskdb.git
-$ cd taskdb
-$ bun install
-```
-
-Then either run it directly:
-
-```bash
-bun taskdb.ts <command>
-```
-
-Or add a shell alias so you can use it anywhere:
-
-```bash
-# bash / zsh — add to ~/.bashrc or ~/.zshrc
-alias taskdb="bun /path/to/taskdb/taskdb.ts"
-
-# fish — add to ~/.config/fish/config.fish
-alias taskdb="bun /path/to/taskdb/taskdb.ts"
-```
-
-### Option B — Global install via Bun (when published)
-
-```bash
-bun add -g @taskdb/cli
-```
-
-> **Note:** Package registry publishing is not yet set up. Use Option A for now.
-
----
-
-## Verify it works
-
-```bash
-$ taskdb --version
+taskdb --help
 # or
-$ taskdb --help
+taskdb --version
 ```
 
-You should see the help output listing all available subcommands.
+## Initialize a project
 
----
-
-## Project initialisation
-
-Once taskdb is installed, run this once inside each project you want to track tasks for:
+Run once inside the project you want to track:
 
 ```bash
-$ taskdb init
-Initialised project at: .tasks
+taskdb init
 ```
 
-This creates the `.tasks/` directory structure. You can commit it to git — all the task files are plain Markdown.
+This creates the `.tasks/` directory structure.
 
-> **Tip:** You can point taskdb at a different directory with `--project=<path>` or the `TASKDB_PROJECT_PATH` environment variable. Handy if you want to share one task directory across several related repos.
+> Tip: override the project path with `--project=<path>` or `TASKDB_PROJECT_PATH`.

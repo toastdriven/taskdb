@@ -4,9 +4,16 @@ import type { OutputFn } from "../types.ts";
 import { formatTask, getProjectPath, requireTask } from "./helpers.ts";
 
 /**
- * The `comment` command.
+ * Handle `taskdb comment <task-identifier> <comment>`.
  *
- * Append a comment entry to an existing task.
+ * Appends a timestamped comment entry and renders the updated task.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param identifier Task identifier.
+ * @param comment Comment text.
+ * @param opts Command options.
+ * @returns Promise that resolves when comment flow completes.
  */
 export async function commentCommand(
   program: Command,

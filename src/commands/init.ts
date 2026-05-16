@@ -4,9 +4,14 @@ import type { OutputFn } from "../types.ts";
 import { getProjectPath } from "./helpers.ts";
 
 /**
- * The `init` command.
+ * Handle `taskdb init`.
  *
- * Create the filestructure to support tasks (idempotent).
+ * Scaffolds the project directory structure and is safe to run repeatedly.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param opts Command options.
+ * @returns Promise that resolves when initialization flow completes.
  */
 export async function initCommand(program: Command, output: OutputFn, opts: { format: string }): Promise<void> {
   const projectPath = getProjectPath(program.opts());

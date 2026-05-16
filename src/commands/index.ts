@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { COMPLETE_TASKS_DIR } from "../constants.ts";
 import type { OutputFn } from "../types.ts";
 import { commentCommand } from "./comment.ts";
 import { completeCommand } from "./complete.ts";
@@ -10,7 +11,12 @@ import { searchCommand } from "./search.ts";
 import { updateCommand } from "./update.ts";
 import { viewCommand } from "./view.ts";
 
-/** Register all taskdb subcommands onto the provided Commander program. */
+/**
+ * Register all taskdb subcommands onto the provided Commander program.
+ *
+ * @param program Commander root program.
+ * @param output Output sink passed through to command handlers.
+ */
 export function registerAllCommands(program: Command, output: OutputFn): void {
   program
     .command("init")
@@ -45,7 +51,9 @@ export function registerAllCommands(program: Command, output: OutputFn): void {
 
   program
     .command("complete <task-identifier>")
-    .description('Mark a task as complete (transitions status to "complete").')
+    .description(
+      `Mark a task as complete (transitions status to "${COMPLETE_TASKS_DIR}").`,
+    )
     .option("--format <format>", "Output format: quiet | plain | json", "plain")
     .action(async (identifier, opts) => completeCommand(program, output, identifier, opts));
 

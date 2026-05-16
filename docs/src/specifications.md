@@ -105,6 +105,31 @@ Perform the initial setup steps on the codebase. This includes scaffolding out a
 
 ---
 
+## Slug Generation
+
+Task slugs are generated from the task title at creation time, then treated as immutable.
+
+Rules (in order):
+
+1. Trim surrounding whitespace.
+2. Lowercase the string.
+3. Remove any character that is not `a-z`, `0-9`, whitespace, or `-`.
+4. Replace runs of whitespace with a single `-`.
+5. Collapse repeated hyphens (`---` → `-`).
+6. Remove leading/trailing hyphens.
+
+Examples:
+
+- `"My Cool Project!"` → `"my-cool-project"`
+- `"  Hello   World  "` → `"hello-world"`
+
+Notes:
+
+- Slugs are **not unique**; task identity comes from the numeric `id`.
+- Updating a task title does **not** change its slug or filename.
+
+---
+
 ## Task Identifiers
 
 Commands that accept `<task-identifier>` support:

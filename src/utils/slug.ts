@@ -9,8 +9,10 @@
  *  5. Collapse consecutive hyphens into one.
  *  6. Strip leading/trailing hyphens.
  *
- * @example toSlug("My Cool Project!") → "my-cool-project"
- * @example toSlug("  Hello   World  ") → "hello-world"
+ * @param name Human-readable title/name.
+ * @returns Normalized slug.
+ * @example toSlug("My Cool Project!") // "my-cool-project"
+ * @example toSlug("  Hello   World  ") // "hello-world"
  */
 export function toSlug(name: string): string {
   return name

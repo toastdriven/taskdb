@@ -1,12 +1,20 @@
 import type { Command } from "commander";
+import { COMPLETE_TASKS_DIR } from "../constants.ts";
 import { Project } from "../models/project.ts";
 import type { OutputFn } from "../types.ts";
 import { formatTask, getProjectPath, requireTask } from "./helpers.ts";
 
 /**
- * The `complete` command.
+ * Handle `taskdb complete <task-identifier>`.
  *
- * Mark a task as complete and append a status-change comment.
+ * Transitions a task to `complete`, appends a status-change comment, and
+ * renders the updated task.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param identifier Task identifier.
+ * @param opts Command options.
+ * @returns Promise that resolves when completion flow finishes.
  */
 export async function completeCommand(
   program: Command,
@@ -23,8 +31,10 @@ export async function completeCommand(
   const warn = opts.format !== "quiet" ? output : undefined;
   const previousStatus = task.status ?? "(none)";
 
-  await project.transitionStatus(task, "complete", warn);
-  await task.addComment(`Status changed from ${previousStatus} to complete`);
+  await project.transitionStatus(task, COMPLETE_TASKS_DIR, warn);
+  await task.addComment(
+    `Status changed from ${previousStatus} to ${COMPLETE_TASKS_DIR}`,
+  );
 
   formatTask(task, opts.format, output);
 }

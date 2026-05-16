@@ -2,7 +2,8 @@ import { test, expect, describe, beforeEach, afterEach, spyOn } from "bun:test";
 import { mkdir, rm, lstat, readlink } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { Project, DEFAULT_STATUSES } from "../../src/models/project.ts";
+import { DEFAULT_STATUSES } from "../../src/constants.ts";
+import { Project } from "../../src/models/project.ts";
 import { Task } from "../../src/models/task.ts";
 
 // ── Temp dir helpers ──────────────────────────────────────────────────────────

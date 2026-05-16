@@ -1,4 +1,8 @@
-/** Output function signature — defaults to console.log in production, injectable for tests. */
+/**
+ * Output function signature used throughout CLI/commands.
+ *
+ * Defaults to `console.log` in production and is injectable in tests.
+ */
 export type OutputFn = (line: string) => void;
 
 /** Output format options for most commands. */

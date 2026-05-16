@@ -23,21 +23,21 @@ Then track each step via CLI updates/comments.
 
 Before starting multi-step work, create tasks in `taskdb`.
 
-- Use `bun taskdb.ts create` for each subtask.
+- Use `taskdb create` for each subtask.
 - Move active work to `in-progress`.
 - Add comments as progress notes and decision logs.
-- Mark completed work with `bun taskdb.ts complete <id>`.
+- Mark completed work with `taskdb complete <task-identifier>`.
 - Prefer small, reviewable tasks over large umbrella tasks.
 ```
 
 ## Minimal command sequence
 
 ```bash
-bun taskdb.ts create "Define contact form schema" --labels='["feat","frontend"]'
-bun taskdb.ts create "Implement React contact form UI" --labels='["feat","frontend"]'
-bun taskdb.ts create "Add POST /contact handler" --labels='["feat","backend"]'
+taskdb create "Define contact form schema" --labels='["feat","frontend"]'
+taskdb create "Implement React contact form UI" --labels='["feat","frontend"]'
+taskdb create "Add POST /contact handler" --labels='["feat","backend"]'
 
-bun taskdb.ts update 12 --status=in-progress
-bun taskdb.ts comment 12 "Schema agreed: name/email/message"
-bun taskdb.ts complete 12
+taskdb update 12 --status=in-progress
+taskdb comment 12 "Schema agreed: name/email/message"
+taskdb complete 12
 ```

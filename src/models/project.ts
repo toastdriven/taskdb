@@ -1,15 +1,16 @@
 import { lstat, mkdir, readdir, symlink, unlink } from "node:fs/promises";
 import { join } from "node:path";
+import {
+  ALL_TASKS_DIR,
+  COMPLETE_TASKS_DIR,
+  DEFAULT_STATUSES,
+  NON_STATUS_DIRS,
+} from "../constants.ts";
 import type { OutputFn } from "../types.ts";
 import { toSlug } from "../utils/slug.ts";
 import { Task } from "./task.ts";
 
-/** Status directories created during `init` (by convention). */
-export const DEFAULT_STATUSES = ["complete", "ready", "in-progress", "done"];
-
-/** Directories that are NOT status directories. */
-const NON_STATUS_DIRS = new Set(["all"]);
-
+/** Filter options accepted by `Project.listTasks`. */
 export interface ListFilter {
   status?: string;
   labels?: string[];
@@ -22,10 +23,20 @@ interface ProjectParams {
   path: string;
 }
 
+/**
+ * Domain model representing a taskdb project root (`.tasks/`).
+ *
+ * Handles filesystem layout, symlink-based status transitions, and task lookup.
+ */
 export class Project {
   /** Absolute path to the project root directory. */
   path: string;
 
+  /**
+   * Create a project model bound to a filesystem path.
+   *
+   * @param params Project constructor params.
+   */
   constructor(params: ProjectParams) {
     this.path = params.path;
   }
@@ -34,14 +45,12 @@ export class Project {
 
   /**
    * Create the initial directory structure:
-   * - `all/00000/`
-   * - `complete/00000/`
-   * - `ready/00000/`
-   * - `in-progress/00000/`
-   * - `done/00000/`
+   * - `<ALL_TASKS_DIR>/00000/`
+   * - `<COMPLETE_TASKS_DIR>/00000/`
+   * - one directory per default status (`<status>/00000/`)
    */
   async scaffold(): Promise<void> {
-    const dirs = ["all", ...DEFAULT_STATUSES];
+    const dirs = [ALL_TASKS_DIR, COMPLETE_TASKS_DIR, ...DEFAULT_STATUSES];
     for (const dir of dirs) {
       await mkdir(join(this.path, dir, "00000"), { recursive: true });
     }
@@ -50,7 +59,7 @@ export class Project {
   /** Returns `true` if the project has already been initialised (i.e. `all/` exists). */
   async isInitialized(): Promise<boolean> {
     try {
-      await lstat(join(this.path, "all"));
+      await lstat(join(this.path, ALL_TASKS_DIR));
       return true;
     } catch {
       return false;
@@ -93,7 +102,7 @@ export class Project {
     let max = 0;
     try {
       for await (const file of glob.scan({
-        cwd: join(this.path, "all"),
+        cwd: join(this.path, ALL_TASKS_DIR),
         followSymlinks: false,
       })) {
         const basename = file.split("/").pop() ?? "";
@@ -120,7 +129,7 @@ export class Project {
     const groupDir = Task.groupDir(id);
     await mkdir(join(this.path, status, groupDir), { recursive: true });
     const symlinkPath = join(this.path, status, groupDir, filename);
-    const target = join("..", "..", "all", groupDir, filename);
+    const target = join("..", "..", ALL_TASKS_DIR, groupDir, filename);
     await symlink(target, symlinkPath);
   }
 
@@ -234,10 +243,10 @@ export class Project {
     const glob = new Bun.Glob(`${prefix}-*.md`);
     try {
       for await (const filename of glob.scan({
-        cwd: join(this.path, "all", groupDir),
+        cwd: join(this.path, ALL_TASKS_DIR, groupDir),
         followSymlinks: false,
       })) {
-        const filePath = join(this.path, "all", groupDir, filename);
+        const filePath = join(this.path, ALL_TASKS_DIR, groupDir, filename);
         const status = (await this.getTaskStatus(id, filename)) ?? undefined;
         return Task.read(filePath, this.path, status);
       }
@@ -259,7 +268,7 @@ export class Project {
     const tasks: Task[] = [];
     const baseDir = filters.status
       ? join(this.path, filters.status)
-      : join(this.path, "all");
+      : join(this.path, ALL_TASKS_DIR);
 
     const glob = new Bun.Glob("*/*.md");
     try {
@@ -272,7 +281,7 @@ export class Project {
         if (isNaN(id) || id <= 0) continue;
 
         // Always read from `all/` (the canonical source), even when filtering by status
-        const realPath = join(this.path, "all", Task.groupDir(id), filename);
+        const realPath = join(this.path, ALL_TASKS_DIR, Task.groupDir(id), filename);
 
         let task: Task;
         try {
@@ -328,7 +337,7 @@ export class Project {
    * `query`, sorted by id ascending.
    */
   async searchTasks(query: string): Promise<Task[]> {
-    const allDir = join(this.path, "all");
+    const allDir = join(this.path, ALL_TASKS_DIR);
 
     const useRg = await this._isRipgrepAvailable();
     const result = useRg

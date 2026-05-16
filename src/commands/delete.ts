@@ -5,9 +5,15 @@ import type { OutputFn } from "../types.ts";
 import { getProjectPath, requireTask } from "./helpers.ts";
 
 /**
- * The `delete` command.
+ * Handle `taskdb delete <task-identifier>`.
  *
- * Permanently delete a task and all of its status symlinks.
+ * Permanently deletes the canonical task file and all status symlinks.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param identifier Task identifier.
+ * @param opts Command options.
+ * @returns Promise that resolves when deletion flow completes.
  */
 export async function deleteCommand(
   program: Command,

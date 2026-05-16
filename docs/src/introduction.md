@@ -20,11 +20,11 @@ It's designed to be fast to pick up, impossible to vendor-lock, and friendly to 
 ### 1. Install
 
 ```bash
-# with bun (recommended)
-bun add -g @taskdb/cli
+# Option A: release binary install (recommended)
+curl -fsSL https://raw.githubusercontent.com/toastdriven/taskdb/main/scripts/install.sh | bash
 
-# or run directly from source
-bun taskdb.ts <command>
+# Option B: global package install
+bun add -g taskdb
 ```
 
 > See the [Installation](./installation.md) page for full details.

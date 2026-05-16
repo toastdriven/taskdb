@@ -1,13 +1,33 @@
+import { DEFAULT_PROJECT_PATH } from "../constants.ts";
 import { Project } from "../models/project.ts";
 import { Task } from "../models/task.ts";
 import type { OutputFn } from "../types.ts";
 
-/** Resolve the taskdb project path from global CLI options / env vars. */
+/**
+ * Resolve the taskdb project path from global CLI options and environment.
+ *
+ * Precedence:
+ * 1. `--project <path>`
+ * 2. `TASKDB_PROJECT_PATH`
+ * 3. `.tasks` (default)
+ *
+ * @param globalOpts Global Commander options object.
+ * @returns Absolute or relative project path to use for this invocation.
+ */
 export function getProjectPath(globalOpts: { project?: string }): string {
-  return globalOpts.project ?? process.env.TASKDB_PROJECT_PATH ?? ".tasks";
+  return globalOpts.project ?? process.env.TASKDB_PROJECT_PATH ?? DEFAULT_PROJECT_PATH;
 }
 
-/** Parse a JSON array string used by --labels options. */
+/**
+ * Parse the `--labels` option value.
+ *
+ * Expected input is a JSON array string, e.g. `"[\"feat\",\"docs\"]"`.
+ * Returns `null` and emits an error if parsing fails.
+ *
+ * @param labelsRaw Raw CLI argument passed to `--labels`.
+ * @param output Output function for user-facing error messages.
+ * @returns Parsed label array, or `null` when invalid.
+ */
 export function parseLabelsOption(
   labelsRaw: string,
   output: OutputFn,
@@ -22,7 +42,17 @@ export function parseLabelsOption(
   }
 }
 
-/** Print a single task in quiet/plain/json formats. */
+/**
+ * Render one task for command output.
+ *
+ * - `quiet`: no output
+ * - `json`: serialized task object
+ * - `plain`: human-readable summary + optional description/comments
+ *
+ * @param task Task to render.
+ * @param format Output mode (`quiet`, `plain`, or `json`).
+ * @param output Output sink.
+ */
 export function formatTask(task: Task, format: string, output: OutputFn): void {
   if (format === "quiet") return;
 
@@ -55,7 +85,16 @@ export function formatTask(task: Task, format: string, output: OutputFn): void {
   }
 }
 
-/** Print a list of tasks in plain/json formats. */
+/**
+ * Render a list of tasks for command output.
+ *
+ * - `json`: array of serialized task objects
+ * - `plain`: one summary line per task
+ *
+ * @param tasks Tasks to render.
+ * @param format Output mode (`plain` or `json`).
+ * @param output Output sink.
+ */
 export function formatTaskList(tasks: Task[], format: string, output: OutputFn): void {
   if (format === "json") {
     output(JSON.stringify(tasks.map((t) => t.toJSON()), null, 2));
@@ -75,7 +114,16 @@ export function formatTaskList(tasks: Task[], format: string, output: OutputFn):
   }
 }
 
-/** Resolve a task or emit a not-found error. */
+/**
+ * Resolve a task identifier to a task instance.
+ *
+ * Emits a consistent not-found error and returns `null` when resolution fails.
+ *
+ * @param project Project instance used to resolve identifiers.
+ * @param identifier User-provided task identifier.
+ * @param output Output sink for not-found errors.
+ * @returns Resolved task, or `null` if not found.
+ */
 export async function requireTask(
   project: Project,
   identifier: string,

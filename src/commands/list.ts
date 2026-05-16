@@ -4,9 +4,15 @@ import type { OutputFn } from "../types.ts";
 import { formatTaskList, getProjectPath, parseLabelsOption } from "./helpers.ts";
 
 /**
- * The `list` command.
+ * Handle `taskdb list`.
  *
- * List tasks with optional filters (status, labels, updated-before/after).
+ * Supports optional filtering by status, labels, and updated timestamp bounds,
+ * then renders results in plain or JSON format.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param opts Command options.
+ * @returns Promise that resolves when list flow completes.
  */
 export async function listCommand(
   program: Command,

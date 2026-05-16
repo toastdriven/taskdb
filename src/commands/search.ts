@@ -4,9 +4,16 @@ import type { OutputFn } from "../types.ts";
 import { formatTaskList, getProjectPath } from "./helpers.ts";
 
 /**
- * The `search` command.
+ * Handle `taskdb search <query>`.
  *
- * Full-text search across task files.
+ * Performs full-text search across task files (`rg` preferred, `grep` fallback)
+ * and renders matched tasks.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param query Search text.
+ * @param opts Command options.
+ * @returns Promise that resolves when search flow completes.
  */
 export async function searchCommand(
   program: Command,

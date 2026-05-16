@@ -4,9 +4,15 @@ import type { OutputFn } from "../types.ts";
 import { formatTask, getProjectPath, requireTask } from "./helpers.ts";
 
 /**
- * The `view` command.
+ * Handle `taskdb view <task-identifier>`.
  *
- * View an existing task in plain/raw/json formats.
+ * Renders a task in plain/json or emits its raw Markdown file content.
+ *
+ * @param program Commander program instance (for global options lookup).
+ * @param output Output sink.
+ * @param identifier Task identifier.
+ * @param opts Command options.
+ * @returns Promise that resolves when view flow completes.
  */
 export async function viewCommand(
   program: Command,
