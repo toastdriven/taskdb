@@ -6,7 +6,33 @@ on:
       - "v*"
 
 jobs:
+  verify-compile-invocation:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: bun-linux-x64
+            artifact: taskdb-linux-x64
+          - target: bun-linux-arm64
+            artifact: taskdb-linux-arm64
+          - target: bun-darwin-x64
+            artifact: taskdb-darwin-x64
+          - target: bun-darwin-arm64
+            artifact: taskdb-darwin-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup just
+        uses: taiki-e/install-action@just
+
+      - name: Verify compile command (dry-run)
+        run: just --dry-run compile "${{ matrix.target }}" "./dist/${{ matrix.artifact }}"
+
   build-binaries:
+    needs: verify-compile-invocation
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -40,7 +66,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Compile
-        run: just compile target=${{ matrix.target }} out=./dist/${{ matrix.artifact }}
+        run: just compile "${{ matrix.target }}" "./dist/${{ matrix.artifact }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
