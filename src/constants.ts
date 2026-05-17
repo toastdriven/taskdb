@@ -4,6 +4,9 @@ import { parseCsvEnv } from "./utils/env.ts";
  * Shared taskdb constants, with optional environment-variable overrides.
  */
 
+/** CLI version string used for `taskdb --version`. */
+export const VERSION = "0.9.0";
+
 /** Default project directory name when no explicit project path is provided. */
 export const DEFAULT_PROJECT_PATH =
   process.env.TASKDB_DEFAULT_PROJECT_PATH ?? ".tasks";

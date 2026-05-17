@@ -1,12 +1,7 @@
 import { Command } from "commander";
-import { createRequire } from "node:module";
-import { DEFAULT_PROJECT_PATH } from "./constants.ts";
+import { DEFAULT_PROJECT_PATH, VERSION } from "./constants.ts";
 import type { OutputFn } from "./types.ts";
 import { registerAllCommands } from "./commands/index.ts";
-
-const require = createRequire(import.meta.url);
-/** CLI version sourced from package metadata for `--version` output. */
-const { version } = require("../package.json") as { version: string };
 
 /**
  * Adapt Commander write callbacks to the project's line-oriented `OutputFn`.
@@ -35,7 +30,7 @@ export function createProgram(output: OutputFn = console.log): Command {
     .description(
       "A zero-config task tracker CLI, powered by (human-readable) flatfiles.",
     )
-    .version(version, "-V, --version", "output the current version")
+    .version(VERSION, "-V, --version", "output the current version")
     .usage("<command> [options]")
     .exitOverride()
     .configureOutput({ writeOut: write, writeErr: write })
