@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-600ef19c.js";
+            window.path_to_searchindex_js = "searchindex-f107098c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-0328e169.js"></script>
@@ -318,6 +318,34 @@ taskdb complete 3
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="guide-llmagent-planning-workflow-with-taskdb"><a class="header" href="#guide-llmagent-planning-workflow-with-taskdb">Guide: LLM/agent planning workflow with <code>taskdb</code></a></h1>
 <p><code>taskdb</code> is a good fit for agentic workflows because each task is a file and every status change is explicit.</p>
+<h2 id="aside-why-would-my-agent-need-task-tracking"><a class="header" href="#aside-why-would-my-agent-need-task-tracking">Aside: “Why would my agent need task tracking?”</a></h2>
+<p>Everything in an LLM’s world, beyond what it was originally trained on, revolves around context windows. It only knows what it currently has access to: the prompt(s) you gave it, whatever <code>AGENTS.md</code> (or similar) that were given to it, and anything it has read or accessed in the current session. And that context window fills up fast, not to mention eating tokens, which costs you money.</p>
+<p><strong>Giving an agent access to a task tracker essentially expands its understanding of what’s been done <em>infinitely</em>, <em>without</em> bloating/blowing-out the context window.</strong></p>
+<p>With a task tracker, all of a sudden, the following benefits appear:</p>
+<ul>
+<li>History (kinda obvious, but beyond a normal session)
+<ul>
+<li>gives the LLM the ability to record what it’s planning to do</li>
+<li>everything that’s <strong>ever</strong> been done</li>
+<li>and what’s left to do</li>
+</ul>
+</li>
+<li>Divide &amp; Conquer:
+<ul>
+<li>let’s the LLM resume work from previous sessions (with small/focused context windows)</li>
+<li>…or to split it between multiple subagents (parallelize)</li>
+<li>…or multiple LLMs! (e.g. start in Claude, switch to Ollama, end in Codex)</li>
+</ul>
+</li>
+<li>User Insight &amp; Control
+<ul>
+<li>gives you (the user) insight into the plan</li>
+<li>you can embelish the tasks without more prompts, or adding to a context window</li>
+<li>forces the LLM to <em>“show its work”</em></li>
+<li>you can pick up tasks yourself, or add to the pile</li>
+</ul>
+</li>
+</ul>
 <h2 id="example-feature-request"><a class="header" href="#example-feature-request">Example feature request</a></h2>
 <blockquote>
 <p>“I’d like to add a React-based contact form to my website.”</p>
