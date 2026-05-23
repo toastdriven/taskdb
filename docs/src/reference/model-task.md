@@ -69,6 +69,35 @@ Absolute path: `<projectPath>/<ALL_TASKS_DIR>/<groupDir>/<filename>`.
 
 Absolute group directory path for this task.
 
+### `lockFilePath: string` (getter)
+
+Absolute task lockfile path (`<taskfile>.lock`, colocated with canonical task file).
+
+## Locking methods
+
+### `lock(): Promise<void>`
+
+Acquires per-task lock:
+
+1. creates lockfile atomically (`wx`)
+2. writes current `process.pid` into lockfile
+
+Throws when lock already exists or filesystem operations fail.
+
+### `unlock(force = false): Promise<void>`
+
+Releases per-task lock.
+
+Behavior:
+
+- missing lockfile -> no-op
+- `force = true` -> remove lockfile regardless of PID
+- `force = false` -> remove only when lockfile PID matches current `process.pid`; otherwise throws
+
+### `isLocked(): Promise<boolean>`
+
+Returns whether the task lockfile exists.
+
 ## Instance methods
 
 ### `buildBody(): string`
@@ -83,6 +112,8 @@ Builds full file text via `gray-matter.stringify` (frontmatter + body).
 
 Ensures group dir exists and writes file content.
 
+This method acquires the per-task lock before writing.
+
 ### `create(): Promise<void>`
 
 First-write lifecycle:
@@ -91,25 +122,37 @@ First-write lifecycle:
 2. set `created` and `updated` (`makeRfc3339`)
 3. write file
 
+This method runs under the per-task lock.
+
 ### `addComment(comment: string): Promise<void>`
 
 Appends comment row, bumps `updated`, writes.
+
+This method runs under the per-task lock.
 
 ### `updateTitle(title: string): Promise<void>`
 
 Updates title, bumps `updated`, writes.
 
+This method runs under the per-task lock.
+
 ### `updateDescription(description: string): Promise<void>`
 
 Updates description, bumps `updated`, writes.
+
+This method runs under the per-task lock.
 
 ### `updateLabels(labels: string[]): Promise<void>`
 
 Replaces labels, bumps `updated`, writes.
 
+This method runs under the per-task lock.
+
 ### `deleteFile(): Promise<void>`
 
 Deletes canonical task file only (does not remove status symlinks).
+
+This method runs under the per-task lock.
 
 ### `toJSON(): object`
 

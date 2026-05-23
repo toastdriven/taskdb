@@ -6,7 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- _Nothing yet._
+- Project-wide lockfile support via `PROJECT_LOCK_FILE` (`project.lock`).
+- `Project.lock()`, `Project.unlock(force?)`, and `Project.isLocked()` APIs.
+- Project lock coverage for `Project.createTask()` and `Project.deleteTask()` to serialize critical sections (including ID allocation).
+- Per-task lockfile support using `<taskfile>.lock`.
+- `Task.lock()`, `Task.unlock(force?)`, and `Task.isLocked()` APIs.
+- Per-task lock wrapping for all task-mutating operations: `write`, `create`, `addComment`, `updateTitle`, `updateDescription`, `updateLabels`, and `deleteFile`.
+- Unit tests for project/task lock lifecycle, PID ownership checks, forced unlock behavior, and lock cleanup.
+- Reference docs updates for constants/model APIs to document locking semantics.
 
 ## [v0.9.0] - 2026-05-16
 

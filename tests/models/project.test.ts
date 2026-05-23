@@ -1,8 +1,15 @@
 import { test, expect, describe, beforeEach, afterEach, spyOn } from "bun:test";
-import { mkdir, rm, lstat, readlink } from "node:fs/promises";
+import {
+  mkdir,
+  rm,
+  lstat,
+  readFile,
+  readlink,
+  writeFile,
+} from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { DEFAULT_STATUSES } from "../../src/constants.ts";
+import { DEFAULT_STATUSES, PROJECT_LOCK_FILE } from "../../src/constants.ts";
 import { Project } from "../../src/models/project.ts";
 import { Task } from "../../src/models/task.ts";
 
@@ -69,6 +76,44 @@ describe("Project.getStatusDirs", () => {
   });
 });
 
+// ── lock / unlock / isLocked ──────────────────────────────────────────────────
+
+describe("Project.lock / unlock / isLocked", () => {
+  test("lock creates lockfile with current pid", async () => {
+    await project.lock();
+    const raw = await readFile(join(projectPath, PROJECT_LOCK_FILE), "utf8");
+    expect(raw.trim()).toBe(String(process.pid));
+  });
+
+  test("isLocked reflects lockfile presence", async () => {
+    expect(await project.isLocked()).toBe(false);
+    await project.lock();
+    expect(await project.isLocked()).toBe(true);
+    await project.unlock();
+    expect(await project.isLocked()).toBe(false);
+  });
+
+  test("unlock is no-op when lockfile missing", async () => {
+    await project.unlock();
+    expect(await project.isLocked()).toBe(false);
+  });
+
+  test("unlock throws when pid does not match", async () => {
+    const lockPath = join(projectPath, PROJECT_LOCK_FILE);
+    await writeFile(lockPath, "999999");
+    await expect(project.unlock()).rejects.toThrow(
+      "Cannot unlock project lock",
+    );
+  });
+
+  test("unlock(force=true) removes lockfile regardless of pid", async () => {
+    const lockPath = join(projectPath, PROJECT_LOCK_FILE);
+    await writeFile(lockPath, "999999");
+    await project.unlock(true);
+    expect(await project.isLocked()).toBe(false);
+  });
+});
+
 // ── maxTaskId ─────────────────────────────────────────────────────────────────
 
 describe("Project.maxTaskId", () => {
@@ -131,6 +176,11 @@ describe("Project.createTask", () => {
   test("sets task status", async () => {
     const task = await project.createTask("T", "", "done");
     expect(task.status).toBe("done");
+  });
+
+  test("cleans up project lock after create", async () => {
+    await project.createTask("T");
+    expect(await project.isLocked()).toBe(false);
   });
 });
 
@@ -260,6 +310,12 @@ describe("Project.deleteTask", () => {
       threwLink = true;
     }
     expect(threwLink).toBe(true);
+  });
+
+  test("cleans up project lock after delete", async () => {
+    const task = await project.createTask("T");
+    await project.deleteTask(task);
+    expect(await project.isLocked()).toBe(false);
   });
 });
 
