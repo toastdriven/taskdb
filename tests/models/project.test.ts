@@ -9,10 +9,7 @@ import {
 } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import {
-  DEFAULT_STATUSES,
-  PROJECT_LOCK_FILE,
-} from "../../src/constants.ts";
+import { DEFAULT_STATUSES, PROJECT_LOCK_FILE } from "../../src/constants.ts";
 import { Project } from "../../src/models/project.ts";
 import { Task } from "../../src/models/task.ts";
 
@@ -104,7 +101,9 @@ describe("Project.lock / unlock / isLocked", () => {
   test("unlock throws when pid does not match", async () => {
     const lockPath = join(projectPath, PROJECT_LOCK_FILE);
     await writeFile(lockPath, "999999");
-    await expect(project.unlock()).rejects.toThrow("Cannot unlock project lock");
+    await expect(project.unlock()).rejects.toThrow(
+      "Cannot unlock project lock",
+    );
   });
 
   test("unlock(force=true) removes lockfile regardless of pid", async () => {
