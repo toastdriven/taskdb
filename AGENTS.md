@@ -117,6 +117,28 @@ Current CLI output conventions:
 - `json`: structured JSON output (`task.toJSON()` / array of `toJSON()` objects)
 - `quiet`: suppresses non-error output
 
+### Locking Model
+
+Two lock layers now exist:
+
+- **Project lock** (`<projectPath>/project.lock` via `PROJECT_LOCK_FILE`):
+  - Used in `Project.createTask` and `Project.deleteTask`.
+  - Purpose: serialize project-wide critical sections, especially next-ID allocation.
+  - API: `Project.lock()`, `Project.unlock(force=false)`, `Project.isLocked()`.
+  - `unlock()` is a no-op if missing; PID must match unless `force=true`.
+
+- **Per-task lock** (`<task-file>.lock`):
+  - Used around all task-mutating operations:
+    - `write`, `create`, `addComment`, `updateTitle`, `updateDescription`, `updateLabels`, `deleteFile`.
+  - API: `Task.lock()`, `Task.unlock(force=false)`, `Task.isLocked()`.
+  - Same PID ownership semantics as project lock.
+
+Implementation notes:
+
+- Locks are acquired via atomic lockfile creation (`writeFile(..., { flag: "wx" })`) then PID write.
+- Mutating flows release locks in `finally` using `unlock(true)` to avoid stale lockfiles on failure.
+- Read paths (`view`, `list`, `search`, `Task.read`) remain lock-free.
+
 ### Task Identifier Formats
 
 Commands accepting `<task-identifier>` support:

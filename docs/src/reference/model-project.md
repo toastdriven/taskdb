@@ -41,6 +41,38 @@ Lists project subdirs treated as status directories (directories not in `NON_STA
 
 Ensures `<status>/<groupDir>` exists. Returns `true` when the status directory is new.
 
+## Locking
+
+### `lockFilePath: string` (getter)
+
+Absolute path to the project lockfile:
+
+- `<projectPath>/<PROJECT_LOCK_FILE>`
+- default filename is `project.lock`
+
+### `lock(): Promise<void>`
+
+Acquires the project-wide lock:
+
+1. creates lockfile atomically (`wx`)
+2. writes current `process.pid` into lockfile
+
+Throws when lock already exists or filesystem operations fail.
+
+### `unlock(force = false): Promise<void>`
+
+Releases the project-wide lock.
+
+Behavior:
+
+- missing lockfile -> no-op
+- `force = true` -> remove lockfile regardless of PID
+- `force = false` -> remove only when lockfile PID matches current `process.pid`; otherwise throws
+
+### `isLocked(): Promise<boolean>`
+
+Returns whether the project lockfile exists.
+
 ## Task ID and symlink operations
 
 ### `maxTaskId(): Promise<number>`
@@ -107,6 +139,10 @@ Returns hydrated tasks sorted by id asc.
 
 Creates task with next id, writes canonical file, and creates status symlink.
 
+This operation is wrapped in a project-wide lock (`lock()` / `unlock(true)` in `finally`) to prevent duplicate ID allocation under concurrency.
+
 ### `deleteTask(task: Task): Promise<void>`
 
 Removes all status symlinks and deletes canonical task file.
+
+This operation is wrapped in a project-wide lock (`lock()` / `unlock(true)` in `finally`).

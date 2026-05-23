@@ -50,3 +50,9 @@ Shared constants used across `taskdb`, with optional environment-variable overri
 
 - Value: `32768`
 - Used for grouped task directory computation (`Task.groupDir`).
+
+### `PROJECT_LOCK_FILE: string`
+
+- Value: `project.lock`
+- Project-wide lockfile name used by `Project.lock` / `Project.unlock` / `Project.isLocked`.
+- Resolved relative to project root (`<projectPath>/project.lock`).

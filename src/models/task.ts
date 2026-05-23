@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import { mkdir, unlink } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   ALL_TASKS_DIR,
@@ -137,6 +137,18 @@ export class Task {
   /** Absolute path to this task's group directory inside `all/`. */
   get groupDirPath(): string {
     return join(this.projectPath, ALL_TASKS_DIR, Task.groupDir(this.id));
+  }
+
+  /**
+   * Absolute path to this task's lockfile.
+   *
+   * The lockfile is colocated with the canonical markdown file and uses the
+   * `<task-filename>.lock` naming convention.
+   *
+   * @returns Absolute filesystem path to this task lock.
+   */
+  get lockFilePath(): string {
+    return `${this.filePath}.lock`;
   }
 
   // ── Serialization ───────────────────────────────────────────────────────────
@@ -292,8 +304,105 @@ export class Task {
    * Ensures the grouped directory exists, then writes the canonical markdown file.
    */
   async write(): Promise<void> {
+    await this.withLock(async () => {
+      await this.writeUnlocked();
+    });
+  }
+
+  /**
+   * Persist task content without taking a lock.
+   *
+   * Intended for internal use only from code paths that have already acquired
+   * the per-task lock (via {@link withLock}).
+   *
+   * @throws When directory creation or file write fails.
+   */
+  private async writeUnlocked(): Promise<void> {
     await mkdir(this.groupDirPath, { recursive: true });
     await Bun.write(this.filePath, this.buildFileContent());
+  }
+
+  // ── Locking ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Acquire the per-task lock.
+   *
+   * This creates the lockfile with `wx` semantics (fail if it already exists),
+   * then writes the current process PID into the file.
+   *
+   * @throws When the lockfile already exists or when filesystem writes fail.
+   */
+  async lock(): Promise<void> {
+    await writeFile(this.lockFilePath, "", { flag: "wx" });
+    await writeFile(this.lockFilePath, String(process.pid));
+  }
+
+  /**
+   * Release the per-task lock.
+   *
+   * Behavior:
+   * - If the lockfile does not exist, this is a no-op.
+   * - If `force` is `true`, delete the lockfile regardless of owner PID.
+   * - Otherwise, only delete when the lockfile PID matches `process.pid`.
+   *
+   * @param force When `true`, bypasses PID ownership checks. Defaults to `false`.
+   * @throws When `force` is `false` and lockfile PID does not match current PID.
+   * @throws When filesystem operations fail for reasons other than missing file.
+   */
+  async unlock(force: boolean = false): Promise<void> {
+    try {
+      if (force) {
+        await unlink(this.lockFilePath);
+        return;
+      }
+
+      const raw = await readFile(this.lockFilePath, "utf8");
+      const lockPid = parseInt(raw.trim(), 10);
+      if (lockPid !== process.pid) {
+        throw new Error(
+          `Cannot unlock task lock owned by PID ${lockPid}; current PID is ${process.pid}`,
+        );
+      }
+      await unlink(this.lockFilePath);
+    } catch (error) {
+      const e = error as NodeJS.ErrnoException;
+      if (e?.code === "ENOENT") return;
+      throw error;
+    }
+  }
+
+  /**
+   * Check whether this task is currently locked.
+   *
+   * @returns `true` when the task lockfile exists; otherwise `false`.
+   */
+  async isLocked(): Promise<boolean> {
+    try {
+      await Bun.file(this.lockFilePath).text();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Run a function under the per-task lock.
+   *
+   * Always attempts lock cleanup in `finally` using `unlock(true)` so stale
+   * locks are not left behind after failures.
+   *
+   * @typeParam T Return type of the wrapped async function.
+   * @param fn Async callback to execute while lock is held.
+   * @returns The callback result.
+   * @throws Re-throws any error raised by lock acquisition or callback execution.
+   */
+  private async withLock<T>(fn: () => Promise<T>): Promise<T> {
+    await this.lock();
+    try {
+      return await fn();
+    } finally {
+      await this.unlock(true);
+    }
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -305,19 +414,23 @@ export class Task {
    * 3. Write the file.
    */
   async create(): Promise<void> {
-    this.slug = toSlug(this.title);
-    const now = makeRfc3339();
-    this.created = now;
-    this.updated = now;
-    await this.write();
+    await this.withLock(async () => {
+      this.slug = toSlug(this.title);
+      const now = makeRfc3339();
+      this.created = now;
+      this.updated = now;
+      await this.writeUnlocked();
+    });
   }
 
   /** Append a timestamped comment, bump `updated`, and persist. */
   async addComment(comment: string): Promise<void> {
-    const now = makeRfc3339();
-    this.comments.push({ commentedAt: now, comment });
-    this.updated = now;
-    await this.write();
+    await this.withLock(async () => {
+      const now = makeRfc3339();
+      this.comments.push({ commentedAt: now, comment });
+      this.updated = now;
+      await this.writeUnlocked();
+    });
   }
 
   /**
@@ -326,9 +439,11 @@ export class Task {
    * @param title New task title.
    */
   async updateTitle(title: string): Promise<void> {
-    this.title = title;
-    this.updated = makeRfc3339();
-    await this.write();
+    await this.withLock(async () => {
+      this.title = title;
+      this.updated = makeRfc3339();
+      await this.writeUnlocked();
+    });
   }
 
   /**
@@ -337,9 +452,11 @@ export class Task {
    * @param description New description markdown.
    */
   async updateDescription(description: string): Promise<void> {
-    this.description = description;
-    this.updated = makeRfc3339();
-    await this.write();
+    await this.withLock(async () => {
+      this.description = description;
+      this.updated = makeRfc3339();
+      await this.writeUnlocked();
+    });
   }
 
   /**
@@ -348,14 +465,18 @@ export class Task {
    * @param labels Full replacement set of labels.
    */
   async updateLabels(labels: string[]): Promise<void> {
-    this.labels = labels;
-    this.updated = makeRfc3339();
-    await this.write();
+    await this.withLock(async () => {
+      this.labels = labels;
+      this.updated = makeRfc3339();
+      await this.writeUnlocked();
+    });
   }
 
   /** Permanently delete the task file. Does NOT touch any symlinks. */
   async deleteFile(): Promise<void> {
-    await unlink(this.filePath);
+    await this.withLock(async () => {
+      await unlink(this.filePath);
+    });
   }
 
   // ── Presentation ─────────────────────────────────────────────────────────────

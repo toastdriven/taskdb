@@ -38,3 +38,6 @@ export const COMMENTS_HEADER =
   process.env.TASKDB_COMMENTS_HEADER ?? "## Task Comments";
 
 export const MAX_FILES_PER_DIR = 32768;
+
+/** Project-wide lockfile used for create/delete critical sections. */
+export const PROJECT_LOCK_FILE = "project.lock";

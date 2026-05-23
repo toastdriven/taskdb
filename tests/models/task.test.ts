@@ -1,5 +1,5 @@
 import { test, expect, describe, beforeEach, afterEach } from "bun:test";
-import { mkdir, rm } from "node:fs/promises";
+import { lstat, mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { Task } from "../../src/models/task.ts";
@@ -112,6 +112,64 @@ Just a description.
     const { description, comments } = Task.parseBody(body);
     expect(description).toBe("Just a description.");
     expect(comments).toEqual([]);
+  });
+});
+
+// ── lock / unlock / isLocked ──────────────────────────────────────────────────
+
+describe("Task.lock / unlock / isLocked", () => {
+  test("lock creates lockfile with current pid", async () => {
+    const task = new Task({
+      id: 1,
+      slug: "t",
+      title: "T",
+      labels: [],
+      created: "",
+      updated: "",
+      description: "",
+      comments: [],
+      projectPath,
+    });
+
+    await task.lock();
+    const raw = await readFile(task.lockFilePath, "utf8");
+    expect(raw.trim()).toBe(String(process.pid));
+    await task.unlock(true);
+  });
+
+  test("unlock throws when pid does not match", async () => {
+    const task = new Task({
+      id: 1,
+      slug: "t",
+      title: "T",
+      labels: [],
+      created: "",
+      updated: "",
+      description: "",
+      comments: [],
+      projectPath,
+    });
+
+    await writeFile(task.lockFilePath, "999999");
+    await expect(task.unlock()).rejects.toThrow("Cannot unlock task lock");
+    await task.unlock(true);
+  });
+
+  test("unlock is no-op when lockfile missing", async () => {
+    const task = new Task({
+      id: 1,
+      slug: "t",
+      title: "T",
+      labels: [],
+      created: "",
+      updated: "",
+      description: "",
+      comments: [],
+      projectPath,
+    });
+
+    await task.unlock();
+    expect(await task.isLocked()).toBe(false);
   });
 });
 
@@ -252,6 +310,28 @@ describe("Task.updateTitle / updateDescription / updateLabels", () => {
 
     const read = await Task.read(task.filePath, projectPath);
     expect(read.labels).toEqual(["bug", "critical"]);
+  });
+});
+
+describe("Task.deleteFile", () => {
+  test("deletes file and cleans lock", async () => {
+    const task = new Task({
+      id: 1,
+      slug: "t",
+      title: "T",
+      labels: [],
+      created: "",
+      updated: "",
+      description: "",
+      comments: [],
+      projectPath,
+    });
+
+    await task.create();
+    await task.deleteFile();
+
+    await expect(lstat(task.filePath)).rejects.toThrow();
+    await expect(unlink(task.lockFilePath)).rejects.toThrow();
   });
 });
 

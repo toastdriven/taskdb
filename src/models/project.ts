@@ -1,10 +1,19 @@
-import { lstat, mkdir, readdir, symlink, unlink } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  readdir,
+  readFile,
+  symlink,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import { join } from "node:path";
 import {
   ALL_TASKS_DIR,
   COMPLETE_TASKS_DIR,
   DEFAULT_STATUSES,
   NON_STATUS_DIRS,
+  PROJECT_LOCK_FILE,
 } from "../constants.ts";
 import type { OutputFn } from "../types.ts";
 import { toSlug } from "../utils/slug.ts";
@@ -107,6 +116,81 @@ export class Project {
     const isNew = !existing.includes(status);
     await mkdir(join(this.path, status, groupDir), { recursive: true });
     return isNew;
+  }
+
+  // ── Locking ───────────────────────────────────────────────────────────────────
+
+  /**
+   * Absolute path to the project-scoped lockfile.
+   *
+   * The filename is controlled by {@link PROJECT_LOCK_FILE} and is resolved
+   * relative to this project's root directory.
+   *
+   * @returns Absolute filesystem path to `project.lock`.
+   */
+  get lockFilePath(): string {
+    return join(this.path, PROJECT_LOCK_FILE);
+  }
+
+  /**
+   * Acquire the project-wide lock.
+   *
+   * This creates the lockfile with `wx` semantics (fail if it already exists),
+   * then writes the current process PID into the file.
+   *
+   * @throws When the lockfile already exists or when filesystem writes fail.
+   */
+  async lock(): Promise<void> {
+    await writeFile(this.lockFilePath, "", { flag: "wx" });
+    await writeFile(this.lockFilePath, String(process.pid));
+  }
+
+  /**
+   * Release the project-wide lock.
+   *
+   * Behavior:
+   * - If the lockfile does not exist, this is a no-op.
+   * - If `force` is `true`, delete the lockfile regardless of owner PID.
+   * - Otherwise, only delete when the lockfile PID matches `process.pid`.
+   *
+   * @param force When `true`, bypasses PID ownership checks. Defaults to `false`.
+   * @throws When `force` is `false` and lockfile PID does not match current PID.
+   * @throws When filesystem operations fail for reasons other than missing file.
+   */
+  async unlock(force: boolean = false): Promise<void> {
+    try {
+      if (force) {
+        await unlink(this.lockFilePath);
+        return;
+      }
+
+      const raw = await readFile(this.lockFilePath, "utf8");
+      const lockPid = parseInt(raw.trim(), 10);
+      if (lockPid !== process.pid) {
+        throw new Error(
+          `Cannot unlock project lock owned by PID ${lockPid}; current PID is ${process.pid}`,
+        );
+      }
+      await unlink(this.lockFilePath);
+    } catch (error) {
+      const e = error as NodeJS.ErrnoException;
+      if (e?.code === "ENOENT") return;
+      throw error;
+    }
+  }
+
+  /**
+   * Check whether the project lock is currently present.
+   *
+   * @returns `true` when the lockfile exists; otherwise `false`.
+   */
+  async isLocked(): Promise<boolean> {
+    try {
+      await lstat(this.lockFilePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // ── Max task ID ───────────────────────────────────────────────────────────────
@@ -419,33 +503,38 @@ export class Project {
     labels: string[] = [],
     warn?: OutputFn,
   ): Promise<Task> {
-    const nextId = (await this.maxTaskId()) + 1;
-    const slug = toSlug(title);
+    await this.lock();
+    try {
+      const nextId = (await this.maxTaskId()) + 1;
+      const slug = toSlug(title);
 
-    const task = new Task({
-      id: nextId,
-      slug,
-      title,
-      labels,
-      created: "",
-      updated: "",
-      description,
-      comments: [],
-      projectPath: this.path,
-      status,
-    });
+      const task = new Task({
+        id: nextId,
+        slug,
+        title,
+        labels,
+        created: "",
+        updated: "",
+        description,
+        comments: [],
+        projectPath: this.path,
+        status,
+      });
 
-    await task.create(); // stamps created/updated and writes the file
+      await task.create(); // stamps created/updated and writes the file
 
-    const isNew = await this.ensureStatusDir(status, Task.groupDir(task.id));
-    if (isNew && warn) {
-      warn(
-        `Warning: "${status}" is a new status directory (not previously known).`,
-      );
+      const isNew = await this.ensureStatusDir(status, Task.groupDir(task.id));
+      if (isNew && warn) {
+        warn(
+          `Warning: "${status}" is a new status directory (not previously known).`,
+        );
+      }
+      await this.createStatusSymlink(status, task.id, task.filename);
+
+      return task;
+    } finally {
+      await this.unlock(true);
     }
-    await this.createStatusSymlink(status, task.id, task.filename);
-
-    return task;
   }
 
   /**
@@ -458,10 +547,15 @@ export class Project {
    * @param task Task instance to delete.
    */
   async deleteTask(task: Task): Promise<void> {
-    const statusDirs = await this.getStatusDirs();
-    for (const dir of statusDirs) {
-      await this.removeStatusSymlink(dir, task.id, task.filename);
+    await this.lock();
+    try {
+      const statusDirs = await this.getStatusDirs();
+      for (const dir of statusDirs) {
+        await this.removeStatusSymlink(dir, task.id, task.filename);
+      }
+      await task.deleteFile();
+    } finally {
+      await this.unlock(true);
     }
-    await task.deleteFile();
   }
 }
