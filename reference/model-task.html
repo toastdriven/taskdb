@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-600ef19c.js";
+            window.path_to_searchindex_js = "../searchindex-299624e6.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-0328e169.js"></script>
@@ -216,6 +216,26 @@
 <p>Absolute path: <code>&lt;projectPath&gt;/&lt;ALL_TASKS_DIR&gt;/&lt;groupDir&gt;/&lt;filename&gt;</code>.</p>
 <h3 id="groupdirpath-string-getter"><a class="header" href="#groupdirpath-string-getter"><code>groupDirPath: string</code> (getter)</a></h3>
 <p>Absolute group directory path for this task.</p>
+<h3 id="lockfilepath-string-getter"><a class="header" href="#lockfilepath-string-getter"><code>lockFilePath: string</code> (getter)</a></h3>
+<p>Absolute task lockfile path (<code>&lt;taskfile&gt;.lock</code>, colocated with canonical task file).</p>
+<h2 id="locking-methods"><a class="header" href="#locking-methods">Locking methods</a></h2>
+<h3 id="lock-promisevoid"><a class="header" href="#lock-promisevoid"><code>lock(): Promise&lt;void&gt;</code></a></h3>
+<p>Acquires per-task lock:</p>
+<ol>
+<li>creates lockfile atomically (<code>wx</code>)</li>
+<li>writes current <code>process.pid</code> into lockfile</li>
+</ol>
+<p>Throws when lock already exists or filesystem operations fail.</p>
+<h3 id="unlockforce--false-promisevoid"><a class="header" href="#unlockforce--false-promisevoid"><code>unlock(force = false): Promise&lt;void&gt;</code></a></h3>
+<p>Releases per-task lock.</p>
+<p>Behavior:</p>
+<ul>
+<li>missing lockfile -&gt; no-op</li>
+<li><code>force = true</code> -&gt; remove lockfile regardless of PID</li>
+<li><code>force = false</code> -&gt; remove only when lockfile PID matches current <code>process.pid</code>; otherwise throws</li>
+</ul>
+<h3 id="islocked-promiseboolean"><a class="header" href="#islocked-promiseboolean"><code>isLocked(): Promise&lt;boolean&gt;</code></a></h3>
+<p>Returns whether the task lockfile exists.</p>
 <h2 id="instance-methods"><a class="header" href="#instance-methods">Instance methods</a></h2>
 <h3 id="buildbody-string"><a class="header" href="#buildbody-string"><code>buildBody(): string</code></a></h3>
 <p>Builds markdown body (<code>Description</code> section + comments table).</p>
@@ -223,6 +243,7 @@
 <p>Builds full file text via <code>gray-matter.stringify</code> (frontmatter + body).</p>
 <h3 id="write-promisevoid"><a class="header" href="#write-promisevoid"><code>write(): Promise&lt;void&gt;</code></a></h3>
 <p>Ensures group dir exists and writes file content.</p>
+<p>This method acquires the per-task lock before writing.</p>
 <h3 id="create-promisevoid"><a class="header" href="#create-promisevoid"><code>create(): Promise&lt;void&gt;</code></a></h3>
 <p>First-write lifecycle:</p>
 <ol>
@@ -230,16 +251,22 @@
 <li>set <code>created</code> and <code>updated</code> (<code>makeRfc3339</code>)</li>
 <li>write file</li>
 </ol>
+<p>This method runs under the per-task lock.</p>
 <h3 id="addcommentcomment-string-promisevoid"><a class="header" href="#addcommentcomment-string-promisevoid"><code>addComment(comment: string): Promise&lt;void&gt;</code></a></h3>
 <p>Appends comment row, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="updatetitletitle-string-promisevoid"><a class="header" href="#updatetitletitle-string-promisevoid"><code>updateTitle(title: string): Promise&lt;void&gt;</code></a></h3>
 <p>Updates title, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="updatedescriptiondescription-string-promisevoid"><a class="header" href="#updatedescriptiondescription-string-promisevoid"><code>updateDescription(description: string): Promise&lt;void&gt;</code></a></h3>
 <p>Updates description, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="updatelabelslabels-string-promisevoid"><a class="header" href="#updatelabelslabels-string-promisevoid"><code>updateLabels(labels: string[]): Promise&lt;void&gt;</code></a></h3>
 <p>Replaces labels, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="deletefile-promisevoid"><a class="header" href="#deletefile-promisevoid"><code>deleteFile(): Promise&lt;void&gt;</code></a></h3>
 <p>Deletes canonical task file only (does not remove status symlinks).</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="tojson-object"><a class="header" href="#tojson-object"><code>toJSON(): object</code></a></h3>
 <p>Returns plain object for CLI JSON output.</p>
 

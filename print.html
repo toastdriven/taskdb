@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-f107098c.js";
+            window.path_to_searchindex_js = "searchindex-299624e6.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-0328e169.js"></script>
@@ -685,6 +685,12 @@ Deleted task [00001] Write README
 <li>Value: <code>32768</code></li>
 <li>Used for grouped task directory computation (<code>Task.groupDir</code>).</li>
 </ul>
+<h3 id="project_lock_file-string"><a class="header" href="#project_lock_file-string"><code>PROJECT_LOCK_FILE: string</code></a></h3>
+<ul>
+<li>Value: <code>project.lock</code></li>
+<li>Project-wide lockfile name used by <code>Project.lock</code> / <code>Project.unlock</code> / <code>Project.isLocked</code>.</li>
+<li>Resolved relative to project root (<code>&lt;projectPath&gt;/project.lock</code>).</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="srcmodelstaskts-task"><a class="header" href="#srcmodelstaskts-task"><code>src/models/task.ts</code> (<code>Task</code>)</a></h1>
 <p>Represents one canonical task markdown file.</p>
@@ -728,6 +734,26 @@ Deleted task [00001] Write README
 <p>Absolute path: <code>&lt;projectPath&gt;/&lt;ALL_TASKS_DIR&gt;/&lt;groupDir&gt;/&lt;filename&gt;</code>.</p>
 <h3 id="groupdirpath-string-getter"><a class="header" href="#groupdirpath-string-getter"><code>groupDirPath: string</code> (getter)</a></h3>
 <p>Absolute group directory path for this task.</p>
+<h3 id="lockfilepath-string-getter"><a class="header" href="#lockfilepath-string-getter"><code>lockFilePath: string</code> (getter)</a></h3>
+<p>Absolute task lockfile path (<code>&lt;taskfile&gt;.lock</code>, colocated with canonical task file).</p>
+<h2 id="locking-methods"><a class="header" href="#locking-methods">Locking methods</a></h2>
+<h3 id="lock-promisevoid"><a class="header" href="#lock-promisevoid"><code>lock(): Promise&lt;void&gt;</code></a></h3>
+<p>Acquires per-task lock:</p>
+<ol>
+<li>creates lockfile atomically (<code>wx</code>)</li>
+<li>writes current <code>process.pid</code> into lockfile</li>
+</ol>
+<p>Throws when lock already exists or filesystem operations fail.</p>
+<h3 id="unlockforce--false-promisevoid"><a class="header" href="#unlockforce--false-promisevoid"><code>unlock(force = false): Promise&lt;void&gt;</code></a></h3>
+<p>Releases per-task lock.</p>
+<p>Behavior:</p>
+<ul>
+<li>missing lockfile -&gt; no-op</li>
+<li><code>force = true</code> -&gt; remove lockfile regardless of PID</li>
+<li><code>force = false</code> -&gt; remove only when lockfile PID matches current <code>process.pid</code>; otherwise throws</li>
+</ul>
+<h3 id="islocked-promiseboolean"><a class="header" href="#islocked-promiseboolean"><code>isLocked(): Promise&lt;boolean&gt;</code></a></h3>
+<p>Returns whether the task lockfile exists.</p>
 <h2 id="instance-methods"><a class="header" href="#instance-methods">Instance methods</a></h2>
 <h3 id="buildbody-string"><a class="header" href="#buildbody-string"><code>buildBody(): string</code></a></h3>
 <p>Builds markdown body (<code>Description</code> section + comments table).</p>
@@ -735,6 +761,7 @@ Deleted task [00001] Write README
 <p>Builds full file text via <code>gray-matter.stringify</code> (frontmatter + body).</p>
 <h3 id="write-promisevoid"><a class="header" href="#write-promisevoid"><code>write(): Promise&lt;void&gt;</code></a></h3>
 <p>Ensures group dir exists and writes file content.</p>
+<p>This method acquires the per-task lock before writing.</p>
 <h3 id="create-promisevoid"><a class="header" href="#create-promisevoid"><code>create(): Promise&lt;void&gt;</code></a></h3>
 <p>First-write lifecycle:</p>
 <ol>
@@ -742,16 +769,22 @@ Deleted task [00001] Write README
 <li>set <code>created</code> and <code>updated</code> (<code>makeRfc3339</code>)</li>
 <li>write file</li>
 </ol>
+<p>This method runs under the per-task lock.</p>
 <h3 id="addcommentcomment-string-promisevoid"><a class="header" href="#addcommentcomment-string-promisevoid"><code>addComment(comment: string): Promise&lt;void&gt;</code></a></h3>
 <p>Appends comment row, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="updatetitletitle-string-promisevoid"><a class="header" href="#updatetitletitle-string-promisevoid"><code>updateTitle(title: string): Promise&lt;void&gt;</code></a></h3>
 <p>Updates title, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="updatedescriptiondescription-string-promisevoid"><a class="header" href="#updatedescriptiondescription-string-promisevoid"><code>updateDescription(description: string): Promise&lt;void&gt;</code></a></h3>
 <p>Updates description, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="updatelabelslabels-string-promisevoid"><a class="header" href="#updatelabelslabels-string-promisevoid"><code>updateLabels(labels: string[]): Promise&lt;void&gt;</code></a></h3>
 <p>Replaces labels, bumps <code>updated</code>, writes.</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="deletefile-promisevoid"><a class="header" href="#deletefile-promisevoid"><code>deleteFile(): Promise&lt;void&gt;</code></a></h3>
 <p>Deletes canonical task file only (does not remove status symlinks).</p>
+<p>This method runs under the per-task lock.</p>
 <h3 id="tojson-object"><a class="header" href="#tojson-object"><code>toJSON(): object</code></a></h3>
 <p>Returns plain object for CLI JSON output.</p>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -785,6 +818,30 @@ Deleted task [00001] Write README
 <p>Lists project subdirs treated as status directories (directories not in <code>NON_STATUS_DIRS</code>).</p>
 <h3 id="ensurestatusdirstatus-string-groupdir-string-promiseboolean"><a class="header" href="#ensurestatusdirstatus-string-groupdir-string-promiseboolean"><code>ensureStatusDir(status: string, groupDir: string): Promise&lt;boolean&gt;</code></a></h3>
 <p>Ensures <code>&lt;status&gt;/&lt;groupDir&gt;</code> exists. Returns <code>true</code> when the status directory is new.</p>
+<h2 id="locking"><a class="header" href="#locking">Locking</a></h2>
+<h3 id="lockfilepath-string-getter-1"><a class="header" href="#lockfilepath-string-getter-1"><code>lockFilePath: string</code> (getter)</a></h3>
+<p>Absolute path to the project lockfile:</p>
+<ul>
+<li><code>&lt;projectPath&gt;/&lt;PROJECT_LOCK_FILE&gt;</code></li>
+<li>default filename is <code>project.lock</code></li>
+</ul>
+<h3 id="lock-promisevoid-1"><a class="header" href="#lock-promisevoid-1"><code>lock(): Promise&lt;void&gt;</code></a></h3>
+<p>Acquires the project-wide lock:</p>
+<ol>
+<li>creates lockfile atomically (<code>wx</code>)</li>
+<li>writes current <code>process.pid</code> into lockfile</li>
+</ol>
+<p>Throws when lock already exists or filesystem operations fail.</p>
+<h3 id="unlockforce--false-promisevoid-1"><a class="header" href="#unlockforce--false-promisevoid-1"><code>unlock(force = false): Promise&lt;void&gt;</code></a></h3>
+<p>Releases the project-wide lock.</p>
+<p>Behavior:</p>
+<ul>
+<li>missing lockfile -&gt; no-op</li>
+<li><code>force = true</code> -&gt; remove lockfile regardless of PID</li>
+<li><code>force = false</code> -&gt; remove only when lockfile PID matches current <code>process.pid</code>; otherwise throws</li>
+</ul>
+<h3 id="islocked-promiseboolean-1"><a class="header" href="#islocked-promiseboolean-1"><code>isLocked(): Promise&lt;boolean&gt;</code></a></h3>
+<p>Returns whether the project lockfile exists.</p>
 <h2 id="task-id-and-symlink-operations"><a class="header" href="#task-id-and-symlink-operations">Task ID and symlink operations</a></h2>
 <h3 id="maxtaskid-promisenumber"><a class="header" href="#maxtaskid-promisenumber"><code>maxTaskId(): Promise&lt;number&gt;</code></a></h3>
 <p>Scans canonical task files and returns max numeric task id, or <code>0</code> if none.</p>
@@ -827,8 +884,10 @@ Also updates <code>task.status</code> in memory.</p>
 <h2 id="high-level-mutations"><a class="header" href="#high-level-mutations">High-level mutations</a></h2>
 <h3 id="createtasktitle-string-description---status--ready-labels-string---warn-outputfn-promisetask"><a class="header" href="#createtasktitle-string-description---status--ready-labels-string---warn-outputfn-promisetask"><code>createTask(title: string, description = "", status = "ready", labels: string[] = [], warn?: OutputFn): Promise&lt;Task&gt;</code></a></h3>
 <p>Creates task with next id, writes canonical file, and creates status symlink.</p>
+<p>This operation is wrapped in a project-wide lock (<code>lock()</code> / <code>unlock(true)</code> in <code>finally</code>) to prevent duplicate ID allocation under concurrency.</p>
 <h3 id="deletetasktask-task-promisevoid"><a class="header" href="#deletetasktask-task-promisevoid"><code>deleteTask(task: Task): Promise&lt;void&gt;</code></a></h3>
 <p>Removes all status symlinks and deletes canonical task file.</p>
+<p>This operation is wrapped in a project-wide lock (<code>lock()</code> / <code>unlock(true)</code> in <code>finally</code>).</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="srcutilsdatetimets"><a class="header" href="#srcutilsdatetimets"><code>src/utils/datetime.ts</code></a></h1>
 <h2 id="makerfc3339date-date-string"><a class="header" href="#makerfc3339date-date-string"><code>makeRfc3339(date?: Date): string</code></a></h2>

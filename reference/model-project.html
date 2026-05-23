@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-600ef19c.js";
+            window.path_to_searchindex_js = "../searchindex-299624e6.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-0328e169.js"></script>
@@ -204,6 +204,30 @@
 <p>Lists project subdirs treated as status directories (directories not in <code>NON_STATUS_DIRS</code>).</p>
 <h3 id="ensurestatusdirstatus-string-groupdir-string-promiseboolean"><a class="header" href="#ensurestatusdirstatus-string-groupdir-string-promiseboolean"><code>ensureStatusDir(status: string, groupDir: string): Promise&lt;boolean&gt;</code></a></h3>
 <p>Ensures <code>&lt;status&gt;/&lt;groupDir&gt;</code> exists. Returns <code>true</code> when the status directory is new.</p>
+<h2 id="locking"><a class="header" href="#locking">Locking</a></h2>
+<h3 id="lockfilepath-string-getter"><a class="header" href="#lockfilepath-string-getter"><code>lockFilePath: string</code> (getter)</a></h3>
+<p>Absolute path to the project lockfile:</p>
+<ul>
+<li><code>&lt;projectPath&gt;/&lt;PROJECT_LOCK_FILE&gt;</code></li>
+<li>default filename is <code>project.lock</code></li>
+</ul>
+<h3 id="lock-promisevoid"><a class="header" href="#lock-promisevoid"><code>lock(): Promise&lt;void&gt;</code></a></h3>
+<p>Acquires the project-wide lock:</p>
+<ol>
+<li>creates lockfile atomically (<code>wx</code>)</li>
+<li>writes current <code>process.pid</code> into lockfile</li>
+</ol>
+<p>Throws when lock already exists or filesystem operations fail.</p>
+<h3 id="unlockforce--false-promisevoid"><a class="header" href="#unlockforce--false-promisevoid"><code>unlock(force = false): Promise&lt;void&gt;</code></a></h3>
+<p>Releases the project-wide lock.</p>
+<p>Behavior:</p>
+<ul>
+<li>missing lockfile -&gt; no-op</li>
+<li><code>force = true</code> -&gt; remove lockfile regardless of PID</li>
+<li><code>force = false</code> -&gt; remove only when lockfile PID matches current <code>process.pid</code>; otherwise throws</li>
+</ul>
+<h3 id="islocked-promiseboolean"><a class="header" href="#islocked-promiseboolean"><code>isLocked(): Promise&lt;boolean&gt;</code></a></h3>
+<p>Returns whether the project lockfile exists.</p>
 <h2 id="task-id-and-symlink-operations"><a class="header" href="#task-id-and-symlink-operations">Task ID and symlink operations</a></h2>
 <h3 id="maxtaskid-promisenumber"><a class="header" href="#maxtaskid-promisenumber"><code>maxTaskId(): Promise&lt;number&gt;</code></a></h3>
 <p>Scans canonical task files and returns max numeric task id, or <code>0</code> if none.</p>
@@ -246,8 +270,10 @@ Also updates <code>task.status</code> in memory.</p>
 <h2 id="high-level-mutations"><a class="header" href="#high-level-mutations">High-level mutations</a></h2>
 <h3 id="createtasktitle-string-description---status--ready-labels-string---warn-outputfn-promisetask"><a class="header" href="#createtasktitle-string-description---status--ready-labels-string---warn-outputfn-promisetask"><code>createTask(title: string, description = "", status = "ready", labels: string[] = [], warn?: OutputFn): Promise&lt;Task&gt;</code></a></h3>
 <p>Creates task with next id, writes canonical file, and creates status symlink.</p>
+<p>This operation is wrapped in a project-wide lock (<code>lock()</code> / <code>unlock(true)</code> in <code>finally</code>) to prevent duplicate ID allocation under concurrency.</p>
 <h3 id="deletetasktask-task-promisevoid"><a class="header" href="#deletetasktask-task-promisevoid"><code>deleteTask(task: Task): Promise&lt;void&gt;</code></a></h3>
 <p>Removes all status symlinks and deletes canonical task file.</p>
+<p>This operation is wrapped in a project-wide lock (<code>lock()</code> / <code>unlock(true)</code> in <code>finally</code>).</p>
 
                     </main>
 
