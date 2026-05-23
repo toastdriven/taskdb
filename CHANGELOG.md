@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- _Nothing yet._
+
+## [v1.0.0] - 2026-05-23
+
 ### Added
 
 - Project-wide lockfile support via `PROJECT_LOCK_FILE` (`project.lock`).

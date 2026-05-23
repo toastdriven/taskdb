@@ -5,7 +5,7 @@ import { parseCsvEnv } from "./utils/env.ts";
  */
 
 /** CLI version string used for `taskdb --version`. */
-export const VERSION = "0.9.0";
+export const VERSION = "1.0.0";
 
 /** Default project directory name when no explicit project path is provided. */
 export const DEFAULT_PROJECT_PATH =
