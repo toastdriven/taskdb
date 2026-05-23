@@ -34,3 +34,6 @@ compile-all:
 
 publish-docs branch="gh-pages":
     ./scripts/publish-docs.sh "{{branch}}"
+
+publish-release version:
+    ./scripts/publish-release.sh "{{version}}"
