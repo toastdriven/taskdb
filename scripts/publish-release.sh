@@ -37,6 +37,7 @@ confirm "Did you update CHANGELOG.md?" || {
 
 git tag "v${version}"
 git push origin --tags
+bunx npm login
 bun publish --dry-run
 bun publish --access public
 echo "Go test the binary install, dummy."
