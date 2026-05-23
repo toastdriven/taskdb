@@ -36,11 +36,4 @@ publish-docs branch="gh-pages":
     ./scripts/publish-docs.sh "{{branch}}"
 
 publish-release version:
-    echo "Did you bump `VERSION`?"
-    echo "Did you bump `package.json`'s `version`?"
-    exit 1
-    git tag v{{version}}
-    git push origin --tags
-    bun publish --dry-run
-    bun publish --access public
-    echo "Go test the binary install, dummy."
+    ./scripts/publish-release.sh "{{version}}"
